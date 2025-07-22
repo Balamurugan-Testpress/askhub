@@ -40,7 +40,5 @@ class AuthTests(TestCase):
                 "password2": "testpass1234",
             },
         )
-        self.assertRedirects(
-            response, reverse("login")
-        )  # or wherever you're redirecting
+        self.assertRedirects(response, reverse("login"))
         self.assertTrue(User.objects.filter(username="newuser").exists())

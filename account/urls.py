@@ -1,17 +1,15 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from .views import register
+from .views import Register
 
 urlpatterns = [
-    path("register/", register, name="register"),
-    # Login & Logout
+    path("register/", Register.as_view(), name="register"),
     path(
         "login/",
         auth_views.LoginView.as_view(template_name="account/login.html"),
         name="login",
     ),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
-    # Password Reset
     path(
         "password-reset/",
         auth_views.PasswordResetView.as_view(
