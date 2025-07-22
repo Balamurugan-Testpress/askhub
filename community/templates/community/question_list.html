@@ -1,33 +1,81 @@
 {% extends "base.html" %}
 {% block title %}Questions{% endblock %}
 {% block content %}
-  <div class="container mt-5">
-    <h1 class="mb-4">All Questions</h1>
+  <div class="container my-5">
+    <h1 class="mb-4 text-center">All Questions</h1>
+    <form method="get" class="row g-3 align-items-end mb-4">
+      <div class="col-md-5">
+        <label for="searchQuery" class="form-label">Search</label>
+        <input type="text"
+               id="searchQuery"
+               name="q"
+               class="form-control"
+               placeholder="Search questions..."
+               value="{{ search_query }}" />
+      </div>
+      <div class="col-md-4">
+        <label for="tagSelect" class="form-label">Filter by Tag</label>
+        <select id="tagSelect"
+                name="tag"
+                class="form-select"
+                onchange="this.form.submit()">
+          <option value="">All Tags</option>
+          {% for tag in all_tags %}
+            <option value="{{ tag.name }}"
+                    {% if tag.name in selected_tags %}selected{% endif %}>{{ tag.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-100">Apply</button>
+      </div>
+    </form>
     {% if question_list %}
-      <div class="list-group">
+      <div class="row">
         {% for question in question_list %}
-          <a href="#"
-             class="list-group-item list-group-item-action mb-2 shadow-sm">
-            <div class="d-flex w-100 justify-content-between">
-              <h5 class="mb-1">{{ question.title }}</h5>
-              <small class="text-muted">{{ question.created_at|date:"M d, Y" }}</small>
+          <div class="col-md-12 mb-3">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h5 class="card-title mb-0">{{ question.title }}</h5>
+                  <small class="text-muted">{{ question.created_at|date:"M d, Y" }}</small>
+                </div>
+                <p class="card-subtitle text-muted mb-2">by {{ question.author }}</p>
+                {% if question.tags.all %}
+                  <div class="mt-2">
+                    {% for tag in question.tags.all %}
+                      {% if tag.name not in selected_tags %}
+                        <a href="?q={{ search_query }}&tag={{ tag.name }}"
+                           class="text-decoration-none">
+                          <span class="badge mx-1 bg-secondary">{{ tag.name }}</span>
+                        </a>
+                      {% else %}
+                        <span class="badge mx-1 bg-primary">{{ tag.name }}</span>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
             </div>
-            <p class="mb-1 text-muted">by {{ question.author }}</p>
-          </a>
+          </div>
         {% endfor %}
       </div>
     {% else %}
-      <div class="alert alert-info">No questions have been posted yet.</div>
+      <div class="alert alert-info">
+        No questions found matching your Filters <a href={% url "question_list" %}>Go Home</a>
+      </div>
     {% endif %}
     {% if is_paginated %}
       <nav aria-label="Page navigation" class="mt-4">
         <ul class="pagination justify-content-center">
           {% if page_obj.has_previous %}
             <li class="page-item">
-              <a class="page-link" href="?page=1">&laquo; First</a>
+              <a class="page-link"
+                 href="?q={{ search_query }}&tag={{ selected_tags|join:"," }}&page=1">&laquo; First</a>
             </li>
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+              <a class="page-link"
+                 href="?q={{ search_query }}&tag={{ selected_tags|join:"," }}&page={{ page_obj.previous_page_number }}">Previous</a>
             </li>
           {% else %}
             <li class="page-item disabled">
@@ -42,10 +90,12 @@
           </li>
           {% if page_obj.has_next %}
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+              <a class="page-link"
+                 href="?q={{ search_query }}&tag={{ selected_tags|join:"," }}&page={{ page_obj.next_page_number }}">Next</a>
             </li>
             <li class="page-item">
-              <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+              <a class="page-link"
+                 href="?q={{ search_query }}&tag={{ selected_tags|join:"," }}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
             </li>
           {% else %}
             <li class="page-item disabled">
