@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}Register{% endblock %}
+{% block content %}
+  <div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <h2 class="card-title text-center mb-4">Create an Account</h2>
+            <form method="post">
+              {% csrf_token %}
+              {% for field in form %}
+                <div class="mb-3">
+                  <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                  {% render_field field class="form-control" %}
+                  {% if field.errors %}<div class="text-danger small">{{ field.errors.0 }}</div>{% endif %}
+                </div>
+              {% endfor %}
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Register</button>
+              </div>
+            </form>
+            <div class="mt-2">
+              <span>Already have an account</span>
+              <a href="{% url 'login' %}">Login</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
