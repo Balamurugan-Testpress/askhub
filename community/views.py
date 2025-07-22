@@ -4,7 +4,7 @@ from django.views.generic import ListView
 from community.models import Question
 
 
-class QuestionList(LoginRequiredMixin, ListView):
+class QuestionListView(LoginRequiredMixin, ListView):
     model = Question
     template_name = "community/question_list.html"
     paginate_by = 10
