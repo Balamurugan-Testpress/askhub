@@ -1,4 +1,6 @@
-from community.views import home
 from django.urls import path
+from community.views import QuestionListView
 
-urlpatterns = [path("", home, name="home")]
+urlpatterns = [
+    path("", QuestionListView.as_view(), name="question_list"),
+]
