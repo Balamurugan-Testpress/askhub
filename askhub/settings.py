@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "account.apps.AccountConfig",
     "taggit",
     "widget_tweaks",
+    "django.contrib.humanize",
 ]
 
 MIDDLEWARE = [
