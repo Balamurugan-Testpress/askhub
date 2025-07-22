@@ -1,19 +1,15 @@
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
-from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
-from django.views.generic import View
+from django.views.generic import FormView
 
 
-class Register(View):
-    def get(self, request):
-        form = UserCreationForm()
-        return render(request, "account/register.html", {"form": form})
+class Register(FormView):
+    template_name = "account/register.html"
+    form_class = UserCreationForm
+    success_url = reverse_lazy("login")
 
-    def post(self, request):
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect(reverse_lazy("login"))
-        return render(request, "account/register.html", {"form": form})
+    def form_valid(self, form):
+        user = form.save()
+        login(self.request, user)
+        return super().form_valid(form)
