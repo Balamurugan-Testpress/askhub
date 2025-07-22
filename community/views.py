@@ -1,12 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-<<<<<<< HEAD
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
-=======
-from django.views.generic import DetailView, ListView
->>>>>>> e3fd15f (feat: implement question detail page and answer detail page)
 from taggit.models import Tag
 
 from community.forms import AnswerForm, QuestionForm
@@ -37,7 +33,6 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
     model = Question
     template_name = "community/question/detail.html"
 
-<<<<<<< HEAD
     def get_object(self):
         question_id = self.kwargs["question_id"]
         return get_object_or_404(Question, pk=question_id)
@@ -48,12 +43,6 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
             self.object.answers.select_related("author")
             .prefetch_related("votes")
             .order_by("-created_at")
-=======
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        all_answers = (
-            self.object.answers.select_related("author").prefetch_related("votes").all()
->>>>>>> e3fd15f (feat: implement question detail page and answer detail page)
         )
 
         page = self.request.GET.get("page")
@@ -73,7 +62,6 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
 class AnswerDetailView(LoginRequiredMixin, DetailView):
     template_name = "community/answer/detail.html"
     model = Answer
-<<<<<<< HEAD
     context_object_name = "answer"
 
     def get_object(self):
@@ -113,6 +101,4 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
         return context
 
     def get_success_url(self):
-        return reverse("question_detail", kwargs={"pk": self.question.pk})
-=======
->>>>>>> e3fd15f (feat: implement question detail page and answer detail page)
+        return reverse("question_detail", kwargs={"question_id": self.question.pk})
