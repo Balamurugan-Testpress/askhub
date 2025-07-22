@@ -11,7 +11,7 @@
                name="q"
                class="form-control"
                placeholder="Search questions..."
-               value="{{ search_query }}" />
+               value="{{ filterset.form.q.value|default_if_none:'' }}" />
       </div>
       <div class="col-md-4">
         <label for="tagSelect" class="form-label">Filter by Tag</label>
@@ -22,7 +22,7 @@
           <option value="">All Tags</option>
           {% for tag in all_tags %}
             <option value="{{ tag.name }}"
-                    {% if tag.name in selected_tags %}selected{% endif %}>{{ tag.name }}</option>
+                    {% if tag.name in filterset.form.tag.value %}selected{% endif %}>{{ tag.name }}</option>
           {% endfor %}
         </select>
       </div>
@@ -44,14 +44,13 @@
                 {% if question.tags.all %}
                   <div class="mt-2">
                     {% for tag in question.tags.all %}
-                      {% if tag.name not in selected_tags %}
-                        <a href="?q={{ search_query }}&tag={{ tag.name }}"
-                           class="text-decoration-none">
-                          <span class="badge mx-1 bg-secondary">{{ tag.name }}</span>
-                        </a>
-                      {% else %}
-                        <span class="badge mx-1 bg-primary">{{ tag.name }}</span>
-                      {% endif %}
+                      {# To highlight selected tags: use filterset.form.tag.value #}
+                      <a href="?q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ tag.name }}"
+                         class="text-decoration-none">
+                        <span class="badge mx-1 {% if tag.name in filterset.form.tag.value %}bg-primary{% else %}bg-secondary{% endif %}">
+                          {{ tag.name }}
+                        </span>
+                      </a>
                     {% endfor %}
                   </div>
                 {% endif %}
@@ -62,7 +61,7 @@
       </div>
     {% else %}
       <div class="alert alert-info">
-        No questions found matching your Filters <a href={% url "question_list" %}>Go Home</a>
+        No questions found matching your filters. <a href="{% url 'question_list' %}">Clear filters</a>
       </div>
     {% endif %}
     {% if is_paginated %}
@@ -71,11 +70,11 @@
           {% if page_obj.has_previous %}
             <li class="page-item">
               <a class="page-link"
-                 href="?q={{ search_query }}&tag={{ selected_tags|join:"," }}&page=1">&laquo; First</a>
+                 href="?page=1&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|join:','|urlencode }}">&laquo; First</a>
             </li>
             <li class="page-item">
               <a class="page-link"
-                 href="?q={{ search_query }}&tag={{ selected_tags|join:"," }}&page={{ page_obj.previous_page_number }}">Previous</a>
+                 href="?page={{ page_obj.previous_page_number }}&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|join:','|urlencode }}">Previous</a>
             </li>
           {% else %}
             <li class="page-item disabled">
@@ -91,11 +90,11 @@
           {% if page_obj.has_next %}
             <li class="page-item">
               <a class="page-link"
-                 href="?q={{ search_query }}&tag={{ selected_tags|join:"," }}&page={{ page_obj.next_page_number }}">Next</a>
+                 href="?page={{ page_obj.next_page_number }}&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|join:','|urlencode }}">Next</a>
             </li>
             <li class="page-item">
               <a class="page-link"
-                 href="?q={{ search_query }}&tag={{ selected_tags|join:"," }}&page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                 href="?page={{ page_obj.paginator.num_pages }}&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|join:','|urlencode }}">Last &raquo;</a>
             </li>
           {% else %}
             <li class="page-item disabled">
