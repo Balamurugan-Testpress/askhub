@@ -1,9 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.views.generic import DetailView, ListView
 from taggit.models import Tag
 
 from .filters import QuestionFilter
-from .models import Question
+from .models import Answer, Question
 
 
 class QuestionListView(LoginRequiredMixin, ListView):
@@ -22,3 +23,32 @@ class QuestionListView(LoginRequiredMixin, ListView):
         context["all_tags"] = Tag.objects.all()
         context["filterset"] = self.filterset
         return context
+
+
+class QuestionDetailView(LoginRequiredMixin, DetailView):
+    model = Question
+    template_name = "community/question/detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        all_answers = (
+            self.object.answers.select_related("author").prefetch_related("votes").all()
+        )
+
+        page = self.request.GET.get("page")
+        paginator = Paginator(all_answers, 5)
+
+        try:
+            answers = paginator.page(page)
+        except PageNotAnInteger:
+            answers = paginator.page(1)
+        except EmptyPage:
+            answers = paginator.page(paginator.num_pages)
+
+        context["answers"] = answers
+        return context
+
+
+class AnswerDetailView(LoginRequiredMixin, DetailView):
+    template_name = "community/answer/detail.html"
+    model = Answer
