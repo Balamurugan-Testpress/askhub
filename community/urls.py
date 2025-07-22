@@ -1,4 +1,5 @@
 from django.urls import path
+<<<<<<< HEAD
 from community.views import (
     AnswerDetailView,
     QuestionCreateView,
