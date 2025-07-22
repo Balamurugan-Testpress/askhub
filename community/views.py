@@ -11,6 +11,7 @@ from .filters import QuestionFilter
 from .models import Answer, Question
 
 
+<<<<<<< HEAD
 class QuestionListView(LoginRequiredMixin, ListView):
     model = Question
     template_name = "community/question/list.html"
@@ -102,3 +103,10 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse("question_detail", kwargs={"question_id": self.question.pk})
+class QuestionList(LoginRequiredMixin, ListView):
+    model = Question
+    template_name = "community/question/list.html"
+    paginate_by = 10
+
+    def get_queryset(self):
+        return Question.objects.order_by("-created_at")
