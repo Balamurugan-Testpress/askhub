@@ -13,7 +13,7 @@
                placeholder="Search questions..."
                value="{{ filterset.form.q.value|default_if_none:'' }}" />
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="tagSelect" class="form-label">Filter by Tag</label>
         <select id="tagSelect"
                 name="tag"
@@ -26,8 +26,13 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <button type="submit" class="btn btn-primary w-100">Apply</button>
+      </div>
+      <div class="col-md-2">
+        <a class='text-decoration-none ' href= {% url 'question_create' %}>
+          <div type="submit" class="btn btn-warning w-100">Ask Question</div>
+        </a>
       </div>
     </form>
     {% if question_list %}

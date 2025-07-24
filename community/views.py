@@ -1,7 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.views.generic import DetailView, ListView
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, DetailView, ListView
 from taggit.models import Tag
+
+from community.forms import QuestionForm
 
 from .filters import QuestionFilter
 from .models import Answer, Question
@@ -52,3 +55,14 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
 class AnswerDetailView(LoginRequiredMixin, DetailView):
     template_name = "community/answer/detail.html"
     model = Answer
+
+
+class QuestionCreateView(LoginRequiredMixin, CreateView):
+    model = Question
+    form_class = QuestionForm
+    template_name = "community/question/create.html"
+    success_url = reverse_lazy("question_list")
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
