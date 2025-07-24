@@ -1,40 +1,37 @@
 {% extends "base.html" %}
+{% load widget_tweaks %}
 {% load humanize %}
 {% block title %}Answer by {{ object.author.username }}{% endblock %}
 {% block content %}
   <div class="container my-5">
-    <!-- Page Heading -->
-    <div class="mb-4 text-center">
+    <div class="mb-4 text-center ">
       <h2 class="fw-bold">Answer Details</h2>
-      <p class="text-muted">answer submitted by {{ object.author.username }}</p>
+      <p class="text-muted mb-0">
+        Submitted by <strong>{{ object.author.username }}</strong>
+      </p>
     </div>
-    <!-- Answer Card -->
     <div class="card shadow-sm border-primary">
       <div class="card-body">
-        <!-- Question Reference -->
         <div class="mb-3">
           <small class="text-muted">In response to:</small>
-          <h5>
+          <h5 class="mb-0">
             <a href="{% url 'question_detail' object.question.id %}"
                class="text-decoration-none">{{ object.question.title }}</a>
           </h5>
         </div>
-        <!-- Meta -->
         <div class="d-flex justify-content-between text-muted small mb-3">
           <span><i class="bi bi-person"></i> {{ object.author.username }}</span>
           <span><i class="bi bi-clock"></i> {{ object.created_at|naturaltime }}</span>
         </div>
-        <!-- Answer Content -->
-        <div class="border-start border-4 ps-3 mb-3">
+        <div class="border-start border-4 ps-3 mb-4">
           <p class="fs-5 mb-0">{{ object.content|linebreaks }}</p>
         </div>
-        <!-- Voting -->
-        <div class="mt-3 d-flex align-items-center justify-content-between">
+        <div class="d-flex justify-content-between align-items-center">
           <div>
             <strong>Votes:</strong> {{ object.votes.count }}
           </div>
           {% if request.user != object.author %}
-            <div class="btngroup" role="group" aria-label="Vote buttons">
+            <div class="btn-group" role="group" aria-label="Vote buttons">
               <button type="submit" class="btn btn-outline-success btn-sm">
                 <i class="bi bi-hand-thumbs-up"></i> Upvote
               </button>
@@ -44,7 +41,6 @@
             </div>
           {% endif %}
         </div>
-        <!-- Author Controls -->
         {% if request.user == object.author %}
           <div class="mt-4">
             <a href="#" class="btn btn-warning btn-sm me-2">
@@ -55,11 +51,41 @@
             </a>
           </div>
         {% endif %}
+        <div class="mt-4">
+          <button type="button"
+                  class="btn btn-sm btn-info"
+                  onclick="this.nextElementSibling.classList.toggle('d-none')">
+            <i class="bi bi-chat-left-text"></i> Add Comment
+          </button>
+          <form method="post" class="card shadow-sm p-3 mt-3 d-none border-0">
+            {% csrf_token %}
+            {{ comment_form.non_field_errors }}
+            <div class="mb-3">
+              {{ comment_form.content.label_tag }}
+              {% render_field comment_form.content class="form-control" rows="3" placeholder="Write a comment..." %}
+              {{ comment_form.content.errors }}
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="button"
+                      class="btn btn-link"
+                      onclick="this.closest('form').classList.add('d-none')">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
     <div class="mt-5">
-      <h5 class="text-muted">Comments</h5>
-      <p class="text-secondary">You’ll be able to add and view threaded comments here.</p>
+      <h5 class="text-muted mb-3">Comments</h5>
+      {% if comments %}
+        {% for comment in comments %}
+          {% if not comment.parent_comment %}
+            {% include "comments/_comment.html" with comment=comment %}
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <p class="fst-italic text-secondary">No comments yet.</p>
+      {% endif %}
     </div>
     <div class="mt-4">
       <a href="{% url 'question_detail' object.question.id %}#answer-form"
