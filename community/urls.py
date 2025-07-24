@@ -9,6 +9,7 @@ from community.views import (
 
 urlpatterns = [
     path("", QuestionListView.as_view(), name="question_list"),
+    path("question/create/", QuestionCreateView.as_view(), name="question_create"),
     path(
         "question/<int:question_id>/",
         QuestionDetailView.as_view(),

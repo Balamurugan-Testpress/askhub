@@ -4,8 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
 from taggit.models import Tag
-
-from community.forms import AnswerForm, QuestionForm
+from community.forms import QuestionForm
 
 from .filters import QuestionFilter
 from .models import Answer, Question
