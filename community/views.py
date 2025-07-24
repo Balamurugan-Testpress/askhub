@@ -4,9 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
 from taggit.models import Tag
-
 from community.forms import QuestionForm
-
 from .filters import QuestionFilter
 from .models import Answer, Question
 
@@ -73,3 +71,4 @@ class QuestionCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
+

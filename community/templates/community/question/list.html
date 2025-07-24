@@ -52,7 +52,6 @@
                 {% if question.tags.all %}
                   <div class="mt-2">
                     {% for tag in question.tags.all %}
-                      {# To highlight selected tags: use filterset.form.tag.value #}
                       <a href="?q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ tag.name }}"
                          class="text-decoration-none">
                         <span class="badge mx-1 {% if tag.name in filterset.form.tag.value %}bg-primary{% else %}bg-secondary{% endif %}">
