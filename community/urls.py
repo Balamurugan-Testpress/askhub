@@ -4,12 +4,18 @@ from community.views import (
     QuestionCreateView,
     QuestionDetailView,
     QuestionListView,
+    SubmitAnswerView,
 )
 
 urlpatterns = [
     path("", QuestionListView.as_view(), name="question_list"),
     path("question/create/", QuestionCreateView.as_view(), name="question_create"),
     path("question/<int:pk>/", QuestionDetailView.as_view(), name="question_detail"),
+    path(
+        "question/<int:pk>/answer/",
+        SubmitAnswerView.as_view(),
+        name="submit_answer",
+    ),
     path(
         "question/<int:q_pk>/answer/<int:pk>/",
         AnswerDetailView.as_view(),

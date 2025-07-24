@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}Submit Your Answer{% endblock %}
+{% block content %}
+  <div class="container my-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title mb-4">Answer: {{ question.title }}</h2>
+        <p class="text-muted mb-4">You're responding to this question. Keep your answer clear, concise, and helpful.</p>
+        <form method="post">
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="mb-3">
+              <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+              {% render_field field class="form-control" %}
+              {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-success">Post Answer</button>
+        </form>
+      </div>
+    </div>
+    <div class="mt-4 text-end">
+      {% if question %}
+        <a href="{% url 'question_detail' question.id %}"
+           class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left"></i> Back to Question
+        </a>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
