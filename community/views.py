@@ -1,11 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
 from taggit.models import Tag
 
-from community.forms import QuestionForm
+from community.forms import AnswerForm, QuestionForm
 
 from .filters import QuestionFilter
 from .models import Answer, Question
@@ -79,3 +79,26 @@ class QuestionCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
+
+
+class SubmitAnswerView(LoginRequiredMixin, CreateView):
+    model = Answer
+    form_class = AnswerForm
+    template_name = "community/answer/create.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.question = get_object_or_404(Question, pk=self.kwargs["question_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.question = self.question  # use already-fetched question
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["question"] = self.question
+        return context
+
+    def get_success_url(self):
+        return reverse("question_detail", kwargs={"pk": self.question.pk})

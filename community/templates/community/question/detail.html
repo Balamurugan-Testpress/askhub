@@ -31,6 +31,10 @@
               <button type="submit" class="btn btn-outline-danger rounded btn-sm">
                 <i class="bi bi-hand-thumbs-down"></i> Downvote 👎
               </button>
+              <a class="text-decoration-none"
+                 href="{% url "submit_answer" object.id %}">
+                <button type="submit" class="btn mx-4 p-2  rounded btn-success btn-sm">Answer the question</button>
+              </a>
             </div>
           {% endif %}
         </div>
