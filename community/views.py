@@ -6,7 +6,6 @@ from django.views.generic import CreateView, DetailView, ListView
 from taggit.models import Tag
 
 from community.forms import AnswerForm, QuestionForm
-
 from .filters import QuestionFilter
 from .models import Answer, Question
 
