@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
 from taggit.models import Tag
@@ -55,6 +56,12 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
 class AnswerDetailView(LoginRequiredMixin, DetailView):
     template_name = "community/answer/detail.html"
     model = Answer
+    context_object_name = "answer"
+
+    def get_object(self):
+        question_id = self.kwargs["question_id"]
+        answer_id = self.kwargs["answer_id"]
+        return get_object_or_404(Answer, pk=answer_id, question__id=question_id)
 
 
 class QuestionCreateView(LoginRequiredMixin, CreateView):
