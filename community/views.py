@@ -6,6 +6,10 @@ from django.views.generic import CreateView, DetailView, ListView
 from taggit.models import Tag
 
 from community.forms import AnswerForm, QuestionForm
+<<<<<<< HEAD
+=======
+
+>>>>>>> 434bc36 (feat: implement and test submit answer)
 from .filters import QuestionFilter
 from .models import Answer, Question
 
@@ -87,12 +91,20 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
     template_name = "community/answer/create.html"
 
     def dispatch(self, request, *args, **kwargs):
+<<<<<<< HEAD
         self.question = get_object_or_404(Question, pk=self.kwargs["question_id"])
+=======
+        self.question = get_object_or_404(Question, pk=self.kwargs["pk"])
+>>>>>>> 434bc36 (feat: implement and test submit answer)
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.author = self.request.user
+<<<<<<< HEAD
         form.instance.question = self.question
+=======
+        form.instance.question = self.question  # use already-fetched question
+>>>>>>> 434bc36 (feat: implement and test submit answer)
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -101,4 +113,8 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
         return context
 
     def get_success_url(self):
+<<<<<<< HEAD
         return reverse("question_detail", kwargs={"question_id": self.question.pk})
+=======
+        return reverse("question_detail", kwargs={"pk": self.question.pk})
+>>>>>>> 434bc36 (feat: implement and test submit answer)
