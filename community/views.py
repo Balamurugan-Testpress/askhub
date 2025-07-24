@@ -3,11 +3,12 @@ from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic.edit import FormMixin
 from taggit.models import Tag
 
 from community.forms import AnswerForm, QuestionForm
 from .filters import QuestionFilter
-from .models import Answer, Question
+from .models import Answer, Comment, Question
 
 
 class QuestionListView(LoginRequiredMixin, ListView):
@@ -59,15 +60,58 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class AnswerDetailView(LoginRequiredMixin, DetailView):
+class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
     template_name = "community/answer/detail.html"
     model = Answer
-    context_object_name = "answer"
+    form_class = CommentForm
 
-    def get_object(self):
-        question_id = self.kwargs["question_id"]
-        answer_id = self.kwargs["answer_id"]
-        return get_object_or_404(Answer, pk=answer_id, question__id=question_id)
+    def get_object(self, queryset=None):
+        return get_object_or_404(
+            Answer,
+            pk=self.kwargs["answer_id"],
+            question_id=self.kwargs["question_id"],
+        )
+
+    def get_success_url(self):
+        return reverse(
+            "answer_detail",
+            kwargs={
+                "question_id": self.object.question_id,
+                "answer_id": self.object.pk,
+            },
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["comments"] = (
+            self.object.comments.select_related("author")
+            .prefetch_related("votes")
+            .order_by("-created_at")
+        )
+        context["comment_form"] = self.get_form()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.answer = self.object
+            comment.author = request.user
+
+            parent_comment_id = request.POST.get("parent_comment_id")
+            if parent_comment_id:
+                try:
+                    parent = Comment.objects.get(id=parent_comment_id)
+                    comment.parent_comment = parent
+                    comment.answer = None
+                except Comment.DoesNotExist:
+                    pass
+
+            comment.save()
+            return super().form_valid(form)
+        else:
+            return self.form_invalid(form)
 
 
 class QuestionCreateView(LoginRequiredMixin, CreateView):

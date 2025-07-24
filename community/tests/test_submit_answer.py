@@ -17,7 +17,6 @@ class SubmitAnswerViewTests(TestCase):
         self.url = reverse("submit_answer", kwargs={"question_id": self.question.pk})
 
     def test_login_required_for_get(self):
-        """GET request should redirect to login if user is not authenticated"""
         response = self.client.get(self.url)
         self.assertRedirects(response, f"/accounts/login/?next={self.url}")
 
@@ -28,7 +27,6 @@ class SubmitAnswerViewTests(TestCase):
         self.assertEqual(Answer.objects.count(), 0)
 
     def test_render_form_authenticated(self):
-        """GET request by authenticated user renders the form"""
         self.client.login(username="tester", password="secret123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
