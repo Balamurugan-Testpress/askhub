@@ -8,7 +8,7 @@ from .models import Question
 
 class QuestionListView(LoginRequiredMixin, ListView):
     model = Question
-    template_name = "community/question_list.html"
+    template_name = "community/question/list.html"
     ordering = "-created_at"
     paginate_by = 10
 

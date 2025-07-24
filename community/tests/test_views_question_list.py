@@ -24,7 +24,7 @@ class QuestionListViewTests(TestCase):
         response = self.client.get(reverse("question_list"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "community/question_list.html")
+        self.assertTemplateUsed(response, "community/question/list.html")
         self.assertTrue("question_list" in response.context)
         self.assertEqual(len(response.context["question_list"]), 10)
 
