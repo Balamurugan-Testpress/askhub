@@ -215,7 +215,7 @@ class VoteView(LoginRequiredMixin, View):
 
         obj = get_object_or_404(model, pk=object_id)
         content_type = ContentType.objects.get_for_model(model)
-
+        user_vote_type = 0
         vote, created = Vote.objects.get_or_create(
             user=request.user,
             content_type=content_type,
@@ -224,22 +224,22 @@ class VoteView(LoginRequiredMixin, View):
         )
 
         if not created:
-            if vote.vote_type == int(vote_type):
+            if vote.vote_type == vote_type:
                 vote.delete()
-
+                user_vote_type = 0
             else:
                 vote.vote_type = vote_type
                 vote.save()
+                user_vote_type = vote_type
+        else:
+            user_vote_type = vote_type
 
-        user_vote = Vote.objects.filter(
-            user=request.user, content_type=content_type, object_id=object_id
-        ).first()
         return render(
             request,
             "community/partials/vote_buttons.html",
             {
                 "obj": obj,
                 "model_name": model_name,
-                "user_vote_type": user_vote.vote_type if user_vote else 0,
+                "user_vote_type": user_vote_type,
             },
         )
