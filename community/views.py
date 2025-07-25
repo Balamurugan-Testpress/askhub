@@ -101,4 +101,4 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
         return context
 
     def get_success_url(self):
-        return reverse("question_detail", kwargs={"pk": self.question.pk})
+        return reverse("question_detail", kwargs={"question_id": self.question.pk})
