@@ -30,6 +30,10 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
     model = Question
     template_name = "community/question/detail.html"
 
+    def get_object(self):
+        question_id = self.kwargs["question_id"]
+        return get_object_or_404(Question, pk=question_id)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_answers = (
