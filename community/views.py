@@ -123,19 +123,23 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
             comment.answer = self.object
             comment.author = request.user
 
-            parent_comment_id = request.POST.get("parent_comment_id")
-            if parent_comment_id:
-                try:
-                    parent = Comment.objects.get(id=parent_comment_id)
-                    comment.parent_comment = parent
-                    comment.answer = None
-                except Comment.DoesNotExist:
-                    pass
+            parent = self.get_parent_comment(request)
+            if parent:
+                comment.parent_comment = parent
 
             comment.save()
             return super().form_valid(form)
         else:
             return self.form_invalid(form)
+
+    def get_parent_comment(self, request):
+        parent_comment_id = request.POST.get("parent_comment_id")
+        if parent_comment_id:
+            try:
+                return Comment.objects.get(id=parent_comment_id)
+            except Comment.DoesNotExist:
+                return None
+        return None
 
 
 class QuestionCreateView(LoginRequiredMixin, CreateView):

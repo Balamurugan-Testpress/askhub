@@ -17,6 +17,7 @@ class SubmitAnswerViewTests(TestCase):
         self.url = reverse("submit_answer", kwargs={"pk": self.question.pk})
 
     def test_login_required_for_get(self):
+        """GET request should redirect to login if user is not authenticated"""
         response = self.client.get(self.url)
         self.assertRedirects(response, f"/accounts/login/?next={self.url}")
 

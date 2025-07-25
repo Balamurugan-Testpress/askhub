@@ -10,14 +10,11 @@
         • {{ comment.created_at|naturaltime }}
       </small>
     </div>
-    <!-- Comment content -->
     <p class="mb-2">{{ comment.content|linebreaksbr }}</p>
-      <div class="mb-2">
-        {% include "community/partials/vote_buttons.html" with obj=comment model_name='comment' user_vote=comment_vote_map|get_item:comment.id %}
-      </div>
-      {% if request.user != comment.author %}
-    {% endif %}
-    <!-- Reply Button and Form -->
+    <div class="mb-2">
+      {% include "community/partials/vote_buttons.html" with obj=comment model_name='comment' user_vote=comment_vote_map|get_item:comment.id %}
+    </div>
+    {% if request.user != comment.author %}{% endif %}
     <div class="mb-2">
       <button class="btn btn-sm btn-outline-primary me-2"
               type="button"

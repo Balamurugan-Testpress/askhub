@@ -89,7 +89,7 @@ class Comment(Votable, models.Model):
     votes = GenericRelation(Vote)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ["created_at"]
 
     def __str__(self):
         return f"Comment by {self.author}"
