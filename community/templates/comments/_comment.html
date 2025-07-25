@@ -1,35 +1,51 @@
 {% load widget_tweaks %}
+{% load custom_filters %}
 {% load humanize %}
-<div class="ps-4 border-start border-2 border-secondary ms-{{ depth|default:0 }}">
+<div class="ms-{{ depth|default:0 }} border-start border-2 ps-3 mb-4">
   <div class="py-2">
+    <!-- Author and Timestamp -->
     <div class="d-flex justify-content-between align-items-center mb-1">
-      <div class="text-muted small">
+      <small class="text-muted">
         <strong>{{ comment.author.username }}</strong>
         • {{ comment.created_at|naturaltime }}
-      </div>
+      </small>
     </div>
-    <p class="mb-2">{{ comment.content }}</p>
-    <button class="btn btn-sm btn-outline-secondary"
-            type="button"
-            onclick="this.nextElementSibling.classList.toggle('d-none')">
-      <i class="bi bi-reply"></i> Reply
-    </button>
-    <form method="post" class="d-none mt-y mb-4">
-      {% csrf_token %}
-      <input type="hidden" name="parent_comment_id" value="{{ comment.id }}">
+    <!-- Comment content -->
+    <p class="mb-2">{{ comment.content|linebreaksbr }}</p>
       <div class="mb-2">
-        {% render_field comment_form.content class="form-control" rows="2" placeholder="Write a reply..." %}
+        {% include "community/partials/vote_buttons.html" with obj=comment model_name='comment' user_vote=comment_vote_map|get_item:comment.id %}
       </div>
-      <button type="submit" class="btn btn-sm btn-primary">Submit</button>
-      <button type="button"
-              class="btn btn-sm btn-link"
-              onclick="this.closest('form').classList.add('d-none')">Cancel</button>
-      <br>
-    </form>
-    <button class="btn  btn-sm btn-outline-secondary"
-            type="button"
-            onclick="this.nextElementSibling.classList.toggle('d-none')">Toggle Replies</button>
-    <div class="mt-2">
+      {% if request.user != comment.author %}
+    {% endif %}
+    <!-- Reply Button and Form -->
+    <div class="mb-2">
+      <button class="btn btn-sm btn-outline-primary me-2"
+              type="button"
+              onclick="this.nextElementSibling.classList.toggle('d-none')">
+        <i class="bi bi-reply"></i> Reply
+      </button>
+      <form method="post" class="card card-body d-none mt-2 border-0 shadow-sm">
+        {% csrf_token %}
+        <input type="hidden" name="parent_comment_id" value="{{ comment.id }}">
+        <div class="mb-2">
+          {% render_field comment_form.content class="form-control" rows="2" placeholder="Write a reply..." %}
+        </div>
+        <div class="d-flex justify-content-end">
+          <button type="button"
+                  class="btn btn-sm btn-link"
+                  onclick="this.closest('form').classList.add('d-none')">Cancel</button>
+          <button type="submit" class="btn btn-sm btn-success ms-2">Submit</button>
+        </div>
+      </form>
+    </div>
+    {% if comment.replies.exists %}
+      <button class="btn btn-sm btn-outline-secondary mb-2"
+              type="button"
+              onclick="this.nextElementSibling.classList.toggle('d-none')">
+        <i class="bi bi-chat-dots"></i> Toggle Replies ({{ comment.replies.count }})
+      </button>
+    {% endif %}
+    <div class="d-none">
       {% for reply in comment.replies.all %}
         {% include "comments/_comment.html" with comment=reply depth=depth|add:"6" %}
       {% endfor %}
