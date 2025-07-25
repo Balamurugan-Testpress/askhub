@@ -7,7 +7,7 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, View
 from django.views.generic.edit import FormMixin
 from taggit.models import Tag
-
+from django.db.models import Sum
 from community.forms import AnswerForm, CommentForm, QuestionForm
 
 from .filters import QuestionFilter
@@ -45,7 +45,8 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
         all_answers = (
             self.object.answers.select_related("author")
             .prefetch_related("votes")
-            .order_by("-created_at")
+            .annotate(score=Sum("votes__vote_type"))
+            .order_by("-score", "-created_at")
         )
         user = self.request.user
         context["user_vote_type"] = self.object.get_user_vote(user)
