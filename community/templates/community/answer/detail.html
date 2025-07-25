@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
+{% load custom_filters %}
 {% load humanize %}
 {% block title %}Answer by {{ object.author.username }}{% endblock %}
 {% block content %}
@@ -73,7 +74,7 @@
       {% if comments %}
         {% for comment in comments %}
           {% if not comment.parent_comment %}
-            {% include "comments/_comment.html" with comment=comment %}
+            {% include "comments/_comment.html" with comment=comment user_vote_type=comment_vote_map|get_item:comment.id %}
           {% endif %}
         {% endfor %}
       {% else %}

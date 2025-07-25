@@ -86,15 +86,29 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["comments"] = (
+        user = self.request.user
+
+        comments = (
             self.object.comments.select_related("author")
             .prefetch_related("votes")
             .order_by("-created_at")
         )
-        user = self.request.user
-        context["user_vote_type"] = self.get_object().get_user_vote(user)
-
+        context["comments"] = comments
         context["comment_form"] = self.get_form()
+        context["user_vote_type"] = self.object.get_user_vote(user)
+
+        if user.is_authenticated:
+            comment_ids = comments.values_list("id", flat=True)
+            vote_qs = Vote.objects.filter(
+                user=user,
+                content_type=ContentType.objects.get_for_model(Comment),
+                object_id__in=comment_ids,
+            ).values_list("object_id", "vote_type")
+            context["comment_vote_map"] = {
+                obj_id: vote_type for obj_id, vote_type in vote_qs
+            }
+        else:
+            context["comment_vote_map"] = {}
         return context
 
     def post(self, request, *args, **kwargs):
