@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, ListView
 from taggit.models import Tag
 
@@ -32,7 +33,9 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_answers = (
-            self.object.answers.select_related("author").prefetch_related("votes").all()
+            self.object.answers.select_related("author")
+            .prefetch_related("votes")
+            .order_by("-created_at")
         )
 
         page = self.request.GET.get("page")
@@ -52,3 +55,11 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
 class AnswerDetailView(LoginRequiredMixin, DetailView):
     template_name = "community/answer/detail.html"
     model = Answer
+    context_object_name = "answer"
+
+    def get_object(self):
+        question_id = self.kwargs["question_id"]
+
+        answer_id = self.kwargs["answer_id"]
+
+        return get_object_or_404(Answer, pk=answer_id, question__id=question_id)
