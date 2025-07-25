@@ -1,15 +1,18 @@
+from urllib import request
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.contenttypes.fields import ContentType
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.shortcuts import get_object_or_404
+from django.http.response import HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
-from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, View
 from django.views.generic.edit import FormMixin
 from taggit.models import Tag
-
+from django.http import HttpResponse
 from community.forms import AnswerForm, CommentForm, QuestionForm
-
+from django.db.models import Sum
 from .filters import QuestionFilter
-from .models import Answer, Comment, Question
+from .models import Answer, Comment, Question, Vote
 
 
 class QuestionListView(LoginRequiredMixin, ListView):
@@ -45,6 +48,9 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
             .prefetch_related("votes")
             .order_by("-created_at")
         )
+        question = self.get_object()
+        user = self.request.user
+        context["user_vote_type"] = question.get_user_vote(user)
 
         page = self.request.GET.get("page")
         paginator = Paginator(all_answers, 5)
@@ -88,6 +94,11 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
             .prefetch_related("votes")
             .order_by("-created_at")
         )
+        answer = self.get_object()
+        user = self.request.user
+
+        context["user_vote_type"] = answer.get_user_vote(user)
+
         context["comment_form"] = self.get_form()
         return context
 
@@ -163,3 +174,51 @@ class QuestionListView(LoginRequiredMixin, ListView):
         context["all_tags"] = Tag.objects.all()
         context["filterset"] = self.filterset
         return context
+
+
+class VoteView(LoginRequiredMixin, View):
+    def post(self, request, model_name, object_id, vote_type):
+        model_map = {
+            "question": Question,
+            "answer": Answer,
+            "comment": Comment,
+        }
+
+        model = model_map.get(model_name)
+        if not model:
+            return HttpResponseBadRequest("Invalid model.")
+
+        obj = get_object_or_404(model, pk=object_id)
+        content_type = ContentType.objects.get_for_model(model)
+
+        vote, created = Vote.objects.get_or_create(
+            user=request.user,
+            content_type=content_type,
+            object_id=object_id,
+            defaults={"vote_type": vote_type},
+        )
+
+        if not created:
+            print("not created")
+            if vote.vote_type == int(vote_type):
+                vote.delete()
+                print("vote deleted")
+
+            else:
+                print("this works")
+                vote.vote_type = vote_type
+                vote.save()
+
+                obj.refresh_from_db()
+        user_vote = Vote.objects.filter(
+            user=request.user, content_type=content_type, object_id=object_id
+        ).first()
+        return render(
+            request,
+            "community/partials/vote_buttons.html",
+            {
+                "obj": obj,
+                "model_name": model_name,
+                "user_vote_type": user_vote.vote_type if user_vote else 0,
+            },
+        )

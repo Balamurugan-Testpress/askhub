@@ -22,7 +22,32 @@ class Vote(models.Model):
         )
 
 
-class Question(models.Model):
+class Votable(models.Model):
+    votes = GenericRelation(Vote)
+
+    class Meta:
+        abstract = True
+
+    @property
+    def upvotes(self):
+        return self.votes.filter(vote_type=1).count()
+
+    @property
+    def downvotes(self):
+        return self.votes.filter(vote_type=-1).count()
+
+    @property
+    def score(self):
+        return self.votes.aggregate(total=models.Sum("vote_type"))["total"] or 0
+
+    def get_user_vote(self, user):
+        if not user.is_authenticated:
+            return 0
+        vote = self.votes.filter(user=user).first()
+        return vote.vote_type if vote else 0
+
+
+class Question(Votable, models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="questions")
     title = models.CharField(max_length=256)
     description = models.TextField()
@@ -34,7 +59,7 @@ class Question(models.Model):
         return str(self.title)
 
 
-class Answer(models.Model):
+class Answer(Votable, models.Model):
     question = models.ForeignKey(
         Question, on_delete=models.CASCADE, related_name="answers"
     )
@@ -47,7 +72,7 @@ class Answer(models.Model):
         return f"Answer by {self.author}"
 
 
-class Comment(models.Model):
+class Comment(Votable, models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
