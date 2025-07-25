@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.functional import cached_property
 from taggit.managers import TaggableManager
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
@@ -28,15 +29,15 @@ class Votable(models.Model):
     class Meta:
         abstract = True
 
-    @property
+    @cached_property
     def upvotes(self):
         return self.votes.filter(vote_type=1).count()
 
-    @property
+    @cached_property
     def downvotes(self):
         return self.votes.filter(vote_type=-1).count()
 
-    @property
+    @cached_property
     def score(self):
         return self.votes.aggregate(total=models.Sum("vote_type"))["total"] or 0
 
