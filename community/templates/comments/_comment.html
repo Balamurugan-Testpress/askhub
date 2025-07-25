@@ -14,7 +14,7 @@
             onclick="this.nextElementSibling.classList.toggle('d-none')">
       <i class="bi bi-reply"></i> Reply
     </button>
-    <form method="post" class="d-none mt-y mb-4">
+    <form method="post" class="d-none mt-2 mb-4">
       {% csrf_token %}
       <input type="hidden" name="parent_comment_id" value="{{ comment.id }}">
       <div class="mb-2">
