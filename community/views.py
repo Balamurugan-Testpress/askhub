@@ -12,6 +12,7 @@ from .filters import QuestionFilter
 from .models import Answer, Comment, Question
 
 
+
 class QuestionListView(LoginRequiredMixin, ListView):
     model = Question
     template_name = "community/question/list.html"
@@ -33,6 +34,10 @@ class QuestionListView(LoginRequiredMixin, ListView):
 class QuestionDetailView(LoginRequiredMixin, DetailView):
     model = Question
     template_name = "community/question/detail.html"
+
+    def get_object(self):
+        question_id = self.kwargs["question_id"]
+        return get_object_or_404(Question, pk=question_id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -112,6 +117,16 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
             except Comment.DoesNotExist:
                 return None
         return None
+=======
+class AnswerDetailView(LoginRequiredMixin, DetailView):
+    template_name = "community/answer/detail.html"
+    model = Answer
+    context_object_name = "answer"
+
+    def get_object(self):
+        question_id = self.kwargs["question_id"]
+        answer_id = self.kwargs["answer_id"]
+        return get_object_or_404(Answer, pk=answer_id, question__id=question_id)
 
 
 class QuestionCreateView(LoginRequiredMixin, CreateView):
@@ -131,7 +146,8 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
     template_name = "community/answer/create.html"
 
     def dispatch(self, request, *args, **kwargs):
-        self.question = get_object_or_404(Question, pk=self.kwargs["pk"])
+
+        self.question = get_object_or_404(Question, pk=self.kwargs["question_id"])
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):

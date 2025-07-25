@@ -28,6 +28,7 @@ class SubmitAnswerViewTests(TestCase):
         self.assertEqual(Answer.objects.count(), 0)
 
     def test_render_form_authenticated(self):
+        """GET request by authenticated user renders the form"""
         self.client.login(username="tester", password="secret123")
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
