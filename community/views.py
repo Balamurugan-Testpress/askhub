@@ -1,4 +1,3 @@
-from urllib import request
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.fields import ContentType
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
@@ -8,9 +7,9 @@ from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, View
 from django.views.generic.edit import FormMixin
 from taggit.models import Tag
-from django.http import HttpResponse
+
 from community.forms import AnswerForm, CommentForm, QuestionForm
-from django.db.models import Sum
+
 from .filters import QuestionFilter
 from .models import Answer, Comment, Question, Vote
 
@@ -178,6 +177,13 @@ class QuestionListView(LoginRequiredMixin, ListView):
 
 class VoteView(LoginRequiredMixin, View):
     def post(self, request, model_name, object_id, vote_type):
+        try:
+            vote_type = int(vote_type)
+            if vote_type not in [1, -1]:
+                return HttpResponseBadRequest("Invalid vote type.")
+        except (ValueError, TypeError):
+            return HttpResponseBadRequest("Invalid vote type.")
+
         model_map = {
             "question": Question,
             "answer": Answer,
@@ -199,17 +205,13 @@ class VoteView(LoginRequiredMixin, View):
         )
 
         if not created:
-            print("not created")
             if vote.vote_type == int(vote_type):
                 vote.delete()
-                print("vote deleted")
 
             else:
-                print("this works")
                 vote.vote_type = vote_type
                 vote.save()
 
-                obj.refresh_from_db()
         user_vote = Vote.objects.filter(
             user=request.user, content_type=content_type, object_id=object_id
         ).first()
