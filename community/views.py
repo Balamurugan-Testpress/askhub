@@ -1,15 +1,17 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.contenttypes.fields import ContentType
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.shortcuts import get_object_or_404
+from django.http.response import HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
-from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, View
 from django.views.generic.edit import FormMixin
 from taggit.models import Tag
-
+from django.db.models import Sum
 from community.forms import AnswerForm, CommentForm, QuestionForm
 
 from .filters import QuestionFilter
-from .models import Answer, Comment, Question
+from .models import Answer, Comment, Question, Vote
 
 
 
@@ -44,8 +46,13 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
         all_answers = (
             self.object.answers.select_related("author")
             .prefetch_related("votes")
-            .order_by("-created_at")
+            .annotate(score=Sum("votes__vote_type"))
+            .order_by("-score", "-created_at")
         )
+        user = self.request.user
+        context["user_vote_type"] = self.object.get_user_vote(user)
+        vote_map = {answer.id: answer.get_user_vote(user) for answer in all_answers}
+        context["answer_vote_map"] = vote_map
 
         page = self.request.GET.get("page")
         paginator = Paginator(all_answers, 5)
@@ -84,12 +91,29 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["comments"] = (
+        user = self.request.user
+
+        comments = (
             self.object.comments.select_related("author")
             .prefetch_related("votes")
             .order_by("-created_at")
         )
+        context["comments"] = comments
         context["comment_form"] = self.get_form()
+        context["user_vote_type"] = self.object.get_user_vote(user)
+
+        if user.is_authenticated:
+            comment_ids = comments.values_list("id", flat=True)
+            vote_qs = Vote.objects.filter(
+                user=user,
+                content_type=ContentType.objects.get_for_model(Comment),
+                object_id__in=comment_ids,
+            ).values_list("object_id", "vote_type")
+            context["comment_vote_map"] = {
+                obj_id: vote_type for obj_id, vote_type in vote_qs
+            }
+        else:
+            context["comment_vote_map"] = {}
         return context
 
     def post(self, request, *args, **kwargs):
@@ -162,3 +186,54 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse("question_detail", kwargs={"pk": self.question.pk})
+
+
+class VoteView(LoginRequiredMixin, View):
+    def post(self, request, model_name, object_id, vote_type):
+        try:
+            vote_type = int(vote_type)
+            if vote_type not in [1, -1]:
+                return HttpResponseBadRequest("Invalid vote type.")
+        except (ValueError, TypeError):
+            return HttpResponseBadRequest("Invalid vote type.")
+
+        model_map = {
+            "question": Question,
+            "answer": Answer,
+            "comment": Comment,
+        }
+
+        model = model_map.get(model_name)
+        if not model:
+            return HttpResponseBadRequest("Invalid model.")
+
+        obj = get_object_or_404(model, pk=object_id)
+        content_type = ContentType.objects.get_for_model(model)
+
+        vote, created = Vote.objects.get_or_create(
+            user=request.user,
+            content_type=content_type,
+            object_id=object_id,
+            defaults={"vote_type": vote_type},
+        )
+
+        if not created:
+            if vote.vote_type == int(vote_type):
+                vote.delete()
+
+            else:
+                vote.vote_type = vote_type
+                vote.save()
+
+        user_vote = Vote.objects.filter(
+            user=request.user, content_type=content_type, object_id=object_id
+        ).first()
+        return render(
+            request,
+            "community/partials/vote_buttons.html",
+            {
+                "obj": obj,
+                "model_name": model_name,
+                "user_vote_type": user_vote.vote_type if user_vote else 0,
+            },
+        )
