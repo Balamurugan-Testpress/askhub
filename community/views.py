@@ -1,9 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import get_object_or_404
-from django.views.generic import DetailView, ListView
-from taggit.models import Tag
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, DetailView, ListView
 
+from taggit.models import Tag
+from community.forms import QuestionForm
 from .filters import QuestionFilter
 from .models import Answer, Question
 
@@ -63,7 +65,17 @@ class AnswerDetailView(LoginRequiredMixin, DetailView):
 
     def get_object(self):
         question_id = self.kwargs["question_id"]
-
         answer_id = self.kwargs["answer_id"]
-
         return get_object_or_404(Answer, pk=answer_id, question__id=question_id)
+
+
+class QuestionCreateView(LoginRequiredMixin, CreateView):
+    model = Question
+    form_class = QuestionForm
+    template_name = "community/question/create.html"
+    success_url = reverse_lazy("question_list")
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+

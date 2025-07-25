@@ -13,7 +13,7 @@
                placeholder="Search questions..."
                value="{{ filterset.form.q.value|default_if_none:'' }}" />
       </div>
-      <div class="col-md-4">
+      <div class="col-md-3">
         <label for="tagSelect" class="form-label">Filter by Tag</label>
         <select id="tagSelect"
                 name="tag"
@@ -26,8 +26,13 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <button type="submit" class="btn btn-primary w-100">Apply</button>
+      </div>
+      <div class="col-md-2">
+        <a class='text-decoration-none ' href= {% url 'question_create' %}>
+          <div type="submit" class="btn btn-warning w-100">Ask Question</div>
+        </a>
       </div>
     </form>
     {% if question_list %}
@@ -47,7 +52,6 @@
                 {% if question.tags.all %}
                   <div class="mt-2">
                     {% for tag in question.tags.all %}
-                      {# To highlight selected tags: use filterset.form.tag.value #}
                       <a href="?q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ tag.name }}"
                          class="text-decoration-none">
                         <span class="badge mx-1 {% if tag.name in filterset.form.tag.value %}bg-primary{% else %}bg-secondary{% endif %}">
@@ -73,11 +77,11 @@
           {% if page_obj.has_previous %}
             <li class="page-item">
               <a class="page-link"
-                 href="?page=1&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|default_if_none:'' }}">&laquo; First</a>
+                 href="?page=1&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|join:','|urlencode }}">&laquo; First</a>
             </li>
             <li class="page-item">
               <a class="page-link"
-                 href="?page={{ page_obj.previous_page_number }}&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|default_if_none:'' }}">Previous</a>
+                 href="?page={{ page_obj.previous_page_number }}&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|join:','|urlencode }}">Previous</a>
             </li>
           {% else %}
             <li class="page-item disabled">
@@ -93,11 +97,11 @@
           {% if page_obj.has_next %}
             <li class="page-item">
               <a class="page-link"
-                 href="?page={{ page_obj.next_page_number }}&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|default_if_none:'' }}">Next</a>
+                 href="?page={{ page_obj.next_page_number }}&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|join:','|urlencode }}">Next</a>
             </li>
             <li class="page-item">
               <a class="page-link"
-                 href="?page={{ page_obj.paginator.num_pages }}&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|default_if_none:'' }}">Last &raquo;</a>
+                 href="?page={{ page_obj.paginator.num_pages }}&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|join:','|urlencode }}">Last &raquo;</a>
             </li>
           {% else %}
             <li class="page-item disabled">

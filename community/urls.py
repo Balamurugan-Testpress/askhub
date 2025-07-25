@@ -1,5 +1,10 @@
 from django.urls import path
-from community.views import AnswerDetailView, QuestionDetailView, QuestionListView
+from community.views import (
+    AnswerDetailView,
+    QuestionCreateView,
+    QuestionDetailView,
+    QuestionListView,
+)
 
 urlpatterns = [
     path("", QuestionListView.as_view(), name="question_list"),
@@ -8,6 +13,7 @@ urlpatterns = [
         QuestionDetailView.as_view(),
         name="question_detail",
     ),
+    path("question/create/", QuestionCreateView.as_view(), name="question_create"),
     path(
         "question/<int:question_id>/answer/<int:answer_id>/",
         AnswerDetailView.as_view(),
