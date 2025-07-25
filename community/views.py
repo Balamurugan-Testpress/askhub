@@ -2,7 +2,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.fields import ContentType
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http.response import HttpResponseBadRequest
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, View
 from django.views.generic.edit import FormMixin
@@ -43,9 +43,10 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
             .prefetch_related("votes")
             .order_by("-created_at")
         )
-        question = self.get_object()
         user = self.request.user
-        context["user_vote_type"] = question.get_user_vote(user)
+        context["user_vote_type"] = self.object.get_user_vote(user)
+        vote_map = {answer.id: answer.get_user_vote(user) for answer in all_answers}
+        context["answer_vote_map"] = vote_map
 
         page = self.request.GET.get("page")
         paginator = Paginator(all_answers, 5)
@@ -89,10 +90,8 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
             .prefetch_related("votes")
             .order_by("-created_at")
         )
-        answer = self.get_object()
         user = self.request.user
-
-        context["user_vote_type"] = answer.get_user_vote(user)
+        context["user_vote_type"] = self.get_object().get_user_vote(user)
 
         context["comment_form"] = self.get_form()
         return context

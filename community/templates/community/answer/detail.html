@@ -31,14 +31,7 @@
             <strong>Votes:</strong> {{ object.votes.count }}
           </div>
           {% if request.user != object.author %}
-            <div class="btn-group" role="group" aria-label="Vote buttons">
-              <button type="submit" class="btn btn-outline-success btn-sm">
-                <i class="bi bi-hand-thumbs-up"></i> Upvote
-              </button>
-              <button type="submit" class="btn btn-outline-danger btn-sm">
-                <i class="bi bi-hand-thumbs-down"></i> Downvote
-              </button>
-            </div>
+            {% include "community/partials/vote_buttons.html" with obj=answer model_name='answer' user_vote='user_vote_type' %}
           {% endif %}
         </div>
         {% if request.user == object.author %}
