@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load custom_filters %}
 {% load humanize %}
 {% block title %}{{ object.title }}{% endblock %}
 {% block content %}
@@ -22,20 +23,9 @@
           </div>
         {% endif %}
         <div class="mt-4 d-flex align-items-center">
-          <strong class="me-2">Votes: {{ object.votes.count }}</strong>
+          <strong class="me-2">Votes:</strong>
           {% if request.user != object.author %}
-            <div class="btn-group g-5" role="group" aria-label="Vote buttons">
-              <button type="submit" class="btn mx-4 rounded btn-outline-success btn-sm">
-                <i class="bi bi-hand-thumbs-up"></i> Upvote 👍
-              </button>
-              <button type="submit" class="btn btn-outline-danger rounded btn-sm">
-                <i class="bi bi-hand-thumbs-down"></i> Downvote 👎
-              </button>
-              <a class="text-decoration-none"
-                 href="{% url "submit_answer" object.id %}">
-                <button type="submit" class="btn mx-4 p-2  rounded btn-success btn-sm">Answer the question</button>
-              </a>
-            </div>
+            {% include "community/partials/vote_buttons.html" with obj=question model_name='question' user_vote='user_vote_type' %}
           {% endif %}
         </div>
         {% if request.user == object.author %}
@@ -50,7 +40,6 @@
         {% endif %}
       </div>
     </div>
-    <!-- Answers Section -->
     <div class="" id=""></div>
     {% for answer in answers %}
       <div class="card my-3 shadow-sm">
