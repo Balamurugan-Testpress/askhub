@@ -14,6 +14,7 @@ from .filters import QuestionFilter
 from .models import Answer, Comment, Question, Vote
 
 
+
 class QuestionListView(LoginRequiredMixin, ListView):
     model = Question
     template_name = "community/question/list.html"
@@ -35,6 +36,10 @@ class QuestionListView(LoginRequiredMixin, ListView):
 class QuestionDetailView(LoginRequiredMixin, DetailView):
     model = Question
     template_name = "community/question/detail.html"
+
+    def get_object(self):
+        question_id = self.kwargs["question_id"]
+        return get_object_or_404(Question, pk=question_id)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -119,19 +124,33 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
             comment.answer = self.object
             comment.author = request.user
 
-            parent_comment_id = request.POST.get("parent_comment_id")
-            if parent_comment_id:
-                try:
-                    parent = Comment.objects.get(id=parent_comment_id)
-                    comment.parent_comment = parent
-                    comment.answer = None
-                except Comment.DoesNotExist:
-                    pass
+            parent = self.get_parent_comment(request)
+            if parent:
+                comment.parent_comment = parent
 
             comment.save()
             return super().form_valid(form)
         else:
             return self.form_invalid(form)
+
+    def get_parent_comment(self, request):
+        parent_comment_id = request.POST.get("parent_comment_id")
+        if parent_comment_id:
+            try:
+                return Comment.objects.get(id=parent_comment_id)
+            except Comment.DoesNotExist:
+                return None
+        return None
+=======
+class AnswerDetailView(LoginRequiredMixin, DetailView):
+    template_name = "community/answer/detail.html"
+    model = Answer
+    context_object_name = "answer"
+
+    def get_object(self):
+        question_id = self.kwargs["question_id"]
+        answer_id = self.kwargs["answer_id"]
+        return get_object_or_404(Answer, pk=answer_id, question__id=question_id)
 
 
 class QuestionCreateView(LoginRequiredMixin, CreateView):
@@ -151,7 +170,8 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
     template_name = "community/answer/create.html"
 
     def dispatch(self, request, *args, **kwargs):
-        self.question = get_object_or_404(Question, pk=self.kwargs["pk"])
+
+        self.question = get_object_or_404(Question, pk=self.kwargs["question_id"])
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):

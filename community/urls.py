@@ -10,10 +10,15 @@ from community.views import (
 
 urlpatterns = [
     path("", QuestionListView.as_view(), name="question_list"),
-    path("question/create/", QuestionCreateView.as_view(), name="question_create"),
-    path("question/<int:pk>/", QuestionDetailView.as_view(), name="question_detail"),
+
     path(
-        "question/<int:pk>/answer/",
+        "question/<int:question_id>/",
+        QuestionDetailView.as_view(),
+        name="question_detail",
+    ),
+    path("question/create/", QuestionCreateView.as_view(), name="question_create"),
+    path(
+        "question/<int:question_id>/answer/",
         SubmitAnswerView.as_view(),
         name="submit_answer",
     ),
