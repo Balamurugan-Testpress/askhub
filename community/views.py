@@ -1,7 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.fields import ContentType
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-<<<<<<< HEAD
 from django.http.response import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
@@ -177,23 +176,6 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
         return reverse("question_detail", kwargs={"question_id": self.question.pk})
 
 
-class QuestionListView(LoginRequiredMixin, ListView):
-    model = Question
-    template_name = "community/question/list.html"
-    paginate_by = 10
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        self.filterset = QuestionFilter(self.request.GET, queryset=queryset)
-        return self.filterset.qs.distinct()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["all_tags"] = Tag.objects.all()
-        context["filterset"] = self.filterset
-        return context
-
-
 class VoteView(LoginRequiredMixin, View):
     def post(self, request, model_name, object_id, vote_type):
         try:
@@ -215,7 +197,7 @@ class VoteView(LoginRequiredMixin, View):
 
         obj = get_object_or_404(model, pk=object_id)
         content_type = ContentType.objects.get_for_model(model)
-
+        user_vote_type = 0
         vote, created = Vote.objects.get_or_create(
             user=request.user,
             content_type=content_type,
@@ -224,22 +206,22 @@ class VoteView(LoginRequiredMixin, View):
         )
 
         if not created:
-            if vote.vote_type == int(vote_type):
+            if vote.vote_type == vote_type:
                 vote.delete()
-
+                user_vote_type = 0
             else:
                 vote.vote_type = vote_type
                 vote.save()
+                user_vote_type = vote_type
+        else:
+            user_vote_type = vote_type
 
-        user_vote = Vote.objects.filter(
-            user=request.user, content_type=content_type, object_id=object_id
-        ).first()
         return render(
             request,
             "community/partials/vote_buttons.html",
             {
                 "obj": obj,
                 "model_name": model_name,
-                "user_vote_type": user_vote.vote_type if user_vote else 0,
+                "user_vote_type": user_vote_type,
             },
         )
