@@ -3,6 +3,7 @@ from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
+
 from taggit.models import Tag
 from community.forms import QuestionForm
 from .filters import QuestionFilter
@@ -34,7 +35,9 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         all_answers = (
-            self.object.answers.select_related("author").prefetch_related("votes").all()
+            self.object.answers.select_related("author")
+            .prefetch_related("votes")
+            .order_by("-created_at")
         )
 
         page = self.request.GET.get("page")
