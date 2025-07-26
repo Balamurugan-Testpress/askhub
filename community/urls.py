@@ -4,6 +4,7 @@ from community.views import (
     QuestionCreateView,
     QuestionDeleteView,
     QuestionDetailView,
+    QuestionEditView,
     QuestionListView,
     SubmitAnswerView,
     VoteView,
@@ -37,5 +38,10 @@ urlpatterns = [
         "questions/<int:question_id>/delete/",
         QuestionDeleteView.as_view(),
         name="question_delete",
+    ),
+    path(
+        "questions/<int:question_id>/edit/",
+        QuestionEditView.as_view(),
+        name="question_edit",
     ),
 ]

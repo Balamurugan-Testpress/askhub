@@ -5,7 +5,7 @@ from django.http.response import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, View
-from django.views.generic.edit import DeleteView, FormMixin
+from django.views.generic.edit import DeleteView, FormMixin, UpdateView
 from taggit.models import Tag
 from django.db.models import Sum
 from community.forms import AnswerForm, CommentForm, QuestionForm
@@ -235,3 +235,26 @@ class QuestionDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_queryset(self):
         return Question.objects.filter(author=self.request.user)
+
+
+class QuestionEditView(LoginRequiredMixin, UpdateView):
+    model = Question
+    form_class = QuestionForm
+    template_name = "community/question/edit.html"
+    pk_url_kwarg = "question_id"
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(
+            Question.objects.only("id", "title", "description", "author"),
+            pk=self.kwargs.get(self.pk_url_kwarg),
+            author=self.request.user,
+        )
+
+    def get_initial(self):
+        initial = super().get_initial()
+        question = self.get_object()
+        initial["tags"] = ", ".join(tag.name for tag in question.tags.all())
+        return initial
+
+    def get_success_url(self):
+        return reverse_lazy("question_detail", kwargs={"question_id": self.object.pk})
