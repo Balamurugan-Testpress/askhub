@@ -32,6 +32,7 @@ class QuestionListView(LoginRequiredMixin, ListView):
 class QuestionDetailView(LoginRequiredMixin, DetailView):
     model = Question
     template_name = "community/question/detail.html"
+    context_object_name = "question"
 
     def get_object(self):
         question_id = self.kwargs["question_id"]
@@ -92,7 +93,7 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        form.instance.question = self.question  # use already-fetched question
+        form.instance.question = self.question
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
