@@ -2,6 +2,7 @@ from django.urls import path, re_path
 from community.views import (
     AnswerDetailView,
     QuestionCreateView,
+    QuestionDeleteView,
     QuestionDetailView,
     QuestionListView,
     SubmitAnswerView,
@@ -27,10 +28,14 @@ urlpatterns = [
         AnswerDetailView.as_view(),
         name="answer_detail",
     ),
-    # community/urls.py
     re_path(
         r"^vote/(?P<model_name>[^/]+)/(?P<object_id>\d+)/(?P<vote_type>-?\d+)/$",
         VoteView.as_view(),
         name="vote",
+    ),
+    path(
+        "questions/<int:question_id>/delete/",
+        QuestionDeleteView.as_view(),
+        name="question_delete",
     ),
 ]

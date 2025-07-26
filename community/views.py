@@ -1,12 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.fields import ContentType
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-<<<<<<< HEAD
 from django.http.response import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, View
-from django.views.generic.edit import FormMixin
+from django.views.generic.edit import DeleteView, FormMixin
 from taggit.models import Tag
 from django.db.models import Sum
 from community.forms import AnswerForm, CommentForm, QuestionForm
@@ -177,23 +176,6 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
         return reverse("question_detail", kwargs={"question_id": self.question.pk})
 
 
-class QuestionListView(LoginRequiredMixin, ListView):
-    model = Question
-    template_name = "community/question/list.html"
-    paginate_by = 10
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        self.filterset = QuestionFilter(self.request.GET, queryset=queryset)
-        return self.filterset.qs.distinct()
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["all_tags"] = Tag.objects.all()
-        context["filterset"] = self.filterset
-        return context
-
-
 class VoteView(LoginRequiredMixin, View):
     def post(self, request, model_name, object_id, vote_type):
         try:
@@ -243,3 +225,13 @@ class VoteView(LoginRequiredMixin, View):
                 "user_vote_type": user_vote_type,
             },
         )
+
+
+class QuestionDeleteView(LoginRequiredMixin, DeleteView):
+    model = Question
+    success_url = reverse_lazy("question_list")
+    template_name = "community/question/confirm_delete.html"
+    pk_url_kwarg = "question_id"
+
+    def get_queryset(self):
+        return Question.objects.filter(author=self.request.user)
