@@ -1,20 +1,26 @@
 {% load widget_tweaks %}
 {% load custom_filters %}
 {% load humanize %}
-<div class="ms-{{ depth|default:0 }} border-start border-2 ps-3 mb-4">
+<!-- Single comment -->
+<div style="margin-left: {{ depth|default:0 }}px"
+     class="border-start border-2 ps-3 mb-4">
   <div class="py-2">
-    <!-- Author and Timestamp -->
+    <!-- Author and timestamp -->
     <div class="d-flex justify-content-between align-items-center mb-1">
       <small class="text-muted">
         <strong>{{ comment.author.username }}</strong>
         • {{ comment.created_at|naturaltime }}
       </small>
     </div>
+    <!-- Comment content -->
     <p class="mb-2">{{ comment.content|linebreaksbr }}</p>
+    <!-- Voting -->
     <div class="mb-2">
-      {% include "community/partials/vote_buttons.html" with obj=comment model_name='comment' user_vote=comment_vote_map|get_item:comment.id %}
+      {% with user_vote_type=comment_vote_map|get_item:comment.id %}
+        {% include "community/partials/vote_buttons.html" with obj=comment model_name="comment" user_vote_type=user_vote_type %}
+      {% endwith %}
     </div>
-    {% if request.user != comment.author %}{% endif %}
+    <!-- Reply button and form -->
     <div class="mb-2">
       <button class="btn btn-sm btn-outline-primary me-2"
               type="button"
@@ -41,11 +47,11 @@
               onclick="this.nextElementSibling.classList.toggle('d-none')">
         <i class="bi bi-chat-dots"></i> Toggle Replies ({{ comment.replies.count }})
       </button>
+      <div class="">
+        {% for reply in comment.replies.all %}
+          {% include "comments/_comment.html" with comment=reply depth=depth|add:"20" comment_form=comment_form comment_vote_map=comment_vote_map %}
+        {% endfor %}
+      </div>
     {% endif %}
-    <div class="d-none">
-      {% for reply in comment.replies.all %}
-        {% include "comments/_comment.html" with comment=reply depth=depth|add:"6" %}
-      {% endfor %}
-    </div>
   </div>
 </div>

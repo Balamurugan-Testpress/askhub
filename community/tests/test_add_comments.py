@@ -72,9 +72,10 @@ class AddCommentTest(TestCase):
         self.assertFalse(
             Comment.objects.filter(content="Anonymous shouldn't comment").exists()
         )
-        def test_submit_valid_reply_to_comment(self):
+
+    def test_submit_valid_reply_to_comment(self):
         self.client.login(username="testuser", password="test@123")
-        
+
         # First, create a parent comment
         parent_comment = Comment.objects.create(
             content="Parent comment",
@@ -114,4 +115,3 @@ class AddCommentTest(TestCase):
         comment = Comment.objects.get(content="Trying invalid parent id")
         self.assertIsNone(comment.parent_comment)  # Should fallback to normal comment
         self.assertEqual(comment.answer, self.answer)
-

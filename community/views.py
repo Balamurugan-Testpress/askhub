@@ -42,28 +42,43 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        all_answers = (
-            self.object.answers.select_related("author")
-            .prefetch_related("votes")
-            .annotate(score=Sum("votes__vote_type"))
-            .order_by("-score", "-created_at")
-        )
         user = self.request.user
+
+        # Get all comments + replies
+        comments = (
+            self.object.comments.select_related("author")
+            .prefetch_related("votes", "replies__author", "replies__votes")
+            .order_by("-created_at")
+        )
+
+        context["comments"] = comments
+        context["comment_form"] = self.get_form()
         context["user_vote_type"] = self.object.get_user_vote(user)
-        vote_map = {answer.id: answer.get_user_vote(user) for answer in all_answers}
-        context["answer_vote_map"] = vote_map
 
-        page = self.request.GET.get("page")
-        paginator = Paginator(all_answers, 5)
+        if user.is_authenticated:
+            # ✅ Collect all comment and reply IDs
+            all_comments = []
 
-        try:
-            answers = paginator.page(page)
-        except PageNotAnInteger:
-            answers = paginator.page(1)
-        except EmptyPage:
-            answers = paginator.page(paginator.num_pages)
+            def collect_comments(queryset):
+                for comment in queryset:
+                    all_comments.append(comment.id)
+                    # recursively collect replies
+                    collect_comments(comment.replies.all())
 
-        context["answers"] = answers
+            collect_comments(comments)
+
+            vote_qs = Vote.objects.filter(
+                user=user,
+                content_type=ContentType.objects.get_for_model(Comment),
+                object_id__in=all_comments,
+            ).values_list("object_id", "vote_type")
+
+            context["comment_vote_map"] = {
+                obj_id: vote_type for obj_id, vote_type in vote_qs
+            }
+        else:
+            context["comment_vote_map"] = {}
+
         return context
 
 
