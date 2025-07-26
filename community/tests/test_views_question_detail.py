@@ -15,7 +15,7 @@ class QuestionDetailViewTests(TestCase):
         self.question.tags.add("tag_1")
 
     def test_redirect_if_not_logged_in(self):
-        url = reverse("question_detail", args=[self.question.pk])
+        url = reverse("question_detail", kwargs={"question_id": self.question.pk})
         response = self.client.get(url)
         self.assertRedirects(
             response, f"/accounts/login/?next=/question/{self.question.pk}/"

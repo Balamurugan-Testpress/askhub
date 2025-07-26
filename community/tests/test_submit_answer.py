@@ -14,7 +14,7 @@ class SubmitAnswerViewTests(TestCase):
             description="Explain the purpose and benefits of writing tests.",
             author=self.user,
         )
-        self.url = reverse("submit_answer", kwargs={"pk": self.question.pk})
+        self.url = reverse("submit_answer", kwargs={"question_id": self.question.pk})
 
     def test_login_required_for_get(self):
         """GET request should redirect to login if user is not authenticated"""
@@ -48,8 +48,9 @@ class SubmitAnswerViewTests(TestCase):
         self.assertEqual(answer.author, self.user)
         self.assertEqual(answer.question, self.question)
 
-        # Ensure redirection to question detail page
-        expected_url = reverse("question_detail", kwargs={"pk": self.question.pk})
+        expected_url = reverse(
+            "question_detail", kwargs={"question_id": self.question.pk}
+        )
         self.assertRedirects(response, expected_url)
 
     def test_submit_invalid_answer(self):
