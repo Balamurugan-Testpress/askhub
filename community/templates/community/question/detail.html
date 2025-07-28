@@ -41,14 +41,16 @@
     <div class="" id=""></div>
     {% for answer in answers %}
       <div class="card my-3 shadow-sm">
-        <a class="card-body text-decoration-none "
-           href="{% url 'answer_detail' question.id answer.id %}">
-          <div class="d-flex justify-content-between text-muted small">
-            <div>{{ answer.author.username }}</div>
-            <div>{{ answer.created_at|naturaltime }}</div>
-          </div>
-          <p class="mt-3 mb-0">{{ answer.content|linebreaks }}</p>
-        </a>
+        <div class="card-body">
+          <a class="text-decoration-none "
+             href="{% url 'answer_detail' question.id answer.id %}">
+            <div class="d-flex justify-content-between text-muted small">
+              <div>{{ answer.author.username }}</div>
+              <div>{{ answer.created_at|naturaltime }}</div>
+            </div>
+            <p class="mt-3 mb-0">{{ answer.content|linebreaks }}</p>
+          </a>
+        </div>
       </div>
     {% endfor %}
     <nav aria-label="Answer pagination" class="mt-4">
