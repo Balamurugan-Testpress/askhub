@@ -6,7 +6,7 @@ from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import FormMixin
 from taggit.models import Tag
 
-from community.forms import AnswerForm, QuestionForm
+from community.forms import AnswerForm, CommentForm, QuestionForm
 from .filters import QuestionFilter
 from .models import Answer, Comment, Question
 
@@ -106,8 +106,10 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
                     comment.parent_comment = parent
                     comment.answer = None
                 except Comment.DoesNotExist:
-                    pass
-
+                    form.add_error(
+                        None, "The comment you are replying to does not exist."
+                    )
+                    return self.form_invalid(form)
             comment.save()
             return super().form_valid(form)
         else:

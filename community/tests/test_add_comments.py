@@ -72,3 +72,46 @@ class AddCommentTest(TestCase):
         self.assertFalse(
             Comment.objects.filter(content="Anonymous shouldn't comment").exists()
         )
+
+    def test_submit_valid_reply_to_comment(self):
+        self.client.login(username="testuser", password="test@123")
+
+        # First, create a parent comment
+        parent_comment = Comment.objects.create(
+            content="Parent comment",
+            author=self.user,
+            answer=self.answer,
+        )
+
+        # Now submit a reply to that comment
+        response = self.client.post(
+            self.url,
+            {
+                "content": "This is a reply",
+                "parent_comment_id": str(parent_comment.pk),
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        reply = Comment.objects.get(content="This is a reply")
+        self.assertEqual(reply.parent_comment, parent_comment)
+        self.assertIsNone(reply.answer)  # Since it's a reply, answer should be null
+        self.assertEqual(reply.author, self.user)
+
+    def test_reply_with_invalid_parent_comment_id(self):
+        self.client.login(username="testuser", password="test@123")
+
+        response = self.client.post(
+            self.url,
+            {
+                "content": "Trying invalid parent id",
+                "parent_comment_id": "9999",  # Assuming this ID doesn't exist
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        comment = Comment.objects.get(content="Trying invalid parent id")
+        self.assertIsNone(comment.parent_comment)  # Should fallback to normal comment
+        self.assertEqual(comment.answer, self.answer)
