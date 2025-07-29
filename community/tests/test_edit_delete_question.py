@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
-from community.models import Question, Answer, Comment
+from community.models import Question
 
 
 class EditDeleteViewsTest(TestCase):
@@ -12,18 +12,6 @@ class EditDeleteViewsTest(TestCase):
         self.question = Question.objects.create(
             title="Sample Question",
             description="Sample description",
-            author=self.author,
-        )
-
-        self.answer = Answer.objects.create(
-            content="Sample answer",
-            question=self.question,
-            author=self.author,
-        )
-
-        self.comment = Comment.objects.create(
-            content="Sample comment",
-            answer=self.answer,
             author=self.author,
         )
 
