@@ -214,16 +214,16 @@ class VoteView(LoginRequiredMixin, View):
         try:
             vote_type = int(vote_type)
             if vote_type not in [1, -1]:
-                return self._bad_request("Invalid vote type.")
+                return HttpResponseBadRequest("Invalid vote type.")
         except (ValueError, TypeError):
-            return self._bad_request("Invalid vote type.")
+            return self.HttpResponseBadRequestalid vote type.")
 
         model = self.model_map.get(model_name)
         if not model:
-            return self._bad_request("Invalid model name.")
+            return self.HttpResponseBadRequestalid model name.")
 
         obj = get_object_or_404(model, pk=object_id)
-        user_vote_type = self._handle_vote(request.user, model, object_id, vote_type)
+        user_vote_type = self._toggle_update_vote(request.user, model, object_id, vote_type)
 
         return render(
             request,
@@ -235,7 +235,7 @@ class VoteView(LoginRequiredMixin, View):
             },
         )
 
-    def _handle_vote(self, user, model, object_id, vote_type):
+    def _toggle_update_vote(self, user, model, object_id, vote_type):
         content_type = ContentType.objects.get_for_model(model)
 
         vote, created = Vote.objects.get_or_create(
@@ -254,5 +254,3 @@ class VoteView(LoginRequiredMixin, View):
 
         return vote_type
 
-    def _bad_request(self, message):
-        return HttpResponseBadRequest(message)
