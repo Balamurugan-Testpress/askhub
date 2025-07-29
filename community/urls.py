@@ -8,6 +8,8 @@ from community.views import (
     QuestionDeleteView,
     AnswerEditView,
     AnswerDeleteView,
+    CommentDeleteView,
+    CommentEditView,
     SubmitAnswerView,
     ToggleVoteView,
 )
@@ -54,5 +56,15 @@ urlpatterns = [
         "question/<int:question_id>/answer/<int:answer_id>/edit/",
         AnswerEditView.as_view(),
         name="answer_edit",
+    ),
+    path(
+        "question/<int:question_id>/answer/<int:answer_id>/comment/<int:comment_id>/delete/",
+        CommentDeleteView.as_view(),
+        name="comment_delete",
+    ),
+    path(
+        "question/<int:question_id>/answer/<int:answer_id>/comment/<int:comment_id>/edit/",
+        CommentEditView.as_view(),
+        name="comment_edit",
     ),
 ]
