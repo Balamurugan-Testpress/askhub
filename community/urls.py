@@ -1,10 +1,11 @@
-from django.urls import path
+from django.urls import path, re_path
 from community.views import (
     AnswerDetailView,
     QuestionCreateView,
     QuestionDetailView,
     QuestionListView,
     SubmitAnswerView,
+    ToggleVoteView,
 )
 
 urlpatterns = [
@@ -24,5 +25,10 @@ urlpatterns = [
         "question/<int:question_id>/answer/<int:answer_id>/",
         AnswerDetailView.as_view(),
         name="answer_detail",
+    ),
+    re_path(
+        r"^vote/(?P<model_name>[^/]+)/(?P<object_id>\d+)/(?P<vote_type>-?\d+)/$",
+        ToggleVoteView.as_view(),
+        name="vote",
     ),
 ]

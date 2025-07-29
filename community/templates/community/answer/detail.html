@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
+{% load custom_filters %}
 {% load humanize %}
 {% block title %}Answer by {{ answer.author.username }}{% endblock %}
 {% block content %}
@@ -29,10 +30,7 @@
             <strong>Votes:</strong> {{ answer.votes.count }}
           </div>
           {% if request.user != answer.author %}
-            <div class="btngroup" role="group" aria-label="Vote buttons">
-              <button type="submit" class="btn btn-outline-success btn-sm">Upvote</button>
-              <button type="submit" class="btn btn-outline-danger btn-sm">Downvote</button>
-            </div>
+            {% include "community/partials/vote_buttons.html" with obj=object model_name='answer' user_vote_type=user_vote_type %}
           {% endif %}
         </div>
         {% if request.user == answer.author %}
@@ -69,9 +67,7 @@
       <h5 class="text-muted mb-3">Comments</h5>
       {% if comments %}
         {% for comment in comments %}
-          {% if not comment.parent_comment %}
-            {% include "comments/_comment.html" with comment=comment %}
-          {% endif %}
+          {% include "comments/_comment.html" with comment=comment user_vote_type=comment_vote_map|get_item:comment.id %}
         {% endfor %}
       {% else %}
         <p class="fst-italic text-secondary">No comments yet.</p>

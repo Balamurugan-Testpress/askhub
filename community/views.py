@@ -1,15 +1,17 @@
+from collections import defaultdict
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.http.response import HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
-from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, View
 from django.views.generic.edit import FormMixin
 from taggit.models import Tag
-
+from django.db.models import Sum
 from community.forms import AnswerForm, CommentForm, QuestionForm
 from .filters import QuestionFilter
-from .models import Answer, Comment, Question
+from .models import Answer, Comment, Question, Vote
 
 
 class QuestionListView(LoginRequiredMixin, ListView):
@@ -44,7 +46,8 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
         all_answers = (
             self.object.answers.select_related("author")
             .prefetch_related("votes")
-            .order_by("-created_at")
+            .annotate(score=Sum("votes__vote_type"))
+            .order_by("-score", "-created_at")
         )
 
         page = self.request.GET.get("page")
@@ -58,7 +61,24 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
             answers = paginator.page(paginator.num_pages)
 
         context["answers"] = answers
+        context["answer_vote_map"] = self._get_answer_vote_map(
+            self.request.user, all_answers
+        )
+
         return context
+
+    def _get_answer_vote_map(self, user, answers):
+        if not user.is_authenticated:
+            return {}
+
+        answer_ids = [a.id for a in answers]
+        vote_qs = Vote.objects.filter(
+            user=user,
+            content_type=ContentType.objects.get_for_model(Answer),
+            object_id__in=answer_ids,
+        ).values_list("object_id", "vote_type")
+
+        return {obj_id: vote_type for obj_id, vote_type in vote_qs}
 
 
 class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
@@ -84,21 +104,28 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["comments"] = (
-            self.object.comments.select_related("author")
-            .prefetch_related("votes")
-            .order_by("-created_at")
-        )
+        user = self.request.user
+
+        all_comments = self._get_comments_with_author_and_votes()
+        context["comments"] = self._build_comments_tree(all_comments)
         context["comment_form"] = self.get_form()
+        context["user_vote_type"] = self.object.get_user_vote(user)
+        context["comment_vote_map"] = self._get_comment_vote_map(user, all_comments)
+
         return context
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         form = self.get_form()
         if form.is_valid():
-            comment = self._create_comment_from_form(form, request)
-            if isinstance(comment, HttpResponse):
-                return comment
+            comment = form.save(commit=False)
+            comment.answer = self.object
+            comment.author = request.user
+
+            parent = self.get_parent_comment(request)
+            if parent:
+                comment.parent_comment = parent
+
             comment.save()
             return super().form_valid(form)
         return self.form_invalid(form)
@@ -119,6 +146,47 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
                 return self.form_invalid(form)
 
         return comment
+
+    def get_parent_comment(self, request):
+        parent_comment_id = request.POST.get("parent_comment_id")
+        if parent_comment_id:
+            try:
+                return Comment.objects.get(id=parent_comment_id)
+            except Comment.DoesNotExist:
+                return None
+        return None
+
+    def _get_comments_with_author_and_votes(self):
+        return list(
+            Comment.objects.filter(answer=self.object)
+            .select_related("author")
+            .prefetch_related("votes")
+            .annotate(score=Sum("votes__vote_type"))
+            .order_by("-score", "-created_at")
+        )
+
+    def _get_comment_vote_map(self, user, comments):
+        if not user.is_authenticated:
+            return {}
+
+        comment_ids = [c.id for c in comments]
+        vote_qs = Vote.objects.filter(
+            user=user,
+            content_type=ContentType.objects.get_for_model(Comment),
+            object_id__in=comment_ids,
+        ).values_list("object_id", "vote_type")
+        return {obj_id: vote_type for obj_id, vote_type in vote_qs}
+
+    def _build_comments_tree(self, comments):
+        children_map = defaultdict(list)
+        for comment in comments:
+            if comment.parent_comment_id:
+                children_map[comment.parent_comment_id].append(comment)
+
+        for comment in comments:
+            comment.children = children_map.get(comment.id, [])
+
+        return [c for c in comments if c.parent_comment_id is None]
 
 
 class QuestionCreateView(LoginRequiredMixin, CreateView):
@@ -153,3 +221,57 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse("question_detail", kwargs={"question_id": self.question.pk})
+
+
+class ToggleVoteView(LoginRequiredMixin, View):
+    model_map = {
+        "question": Question,
+        "answer": Answer,
+        "comment": Comment,
+    }
+
+    def post(self, request, model_name, object_id, vote_type):
+        try:
+            vote_type = int(vote_type)
+            if vote_type not in [1, -1]:
+                return HttpResponseBadRequest("Invalid vote type.")
+        except (ValueError, TypeError):
+            return HttpResponseBadRequest("Invalid vote type.")
+
+        model = self.model_map.get(model_name)
+        if not model:
+            return HttpResponseBadRequest("Invalid model type.")
+
+        obj = get_object_or_404(model, pk=object_id)
+        user_vote_type = self._toggle_update_vote(
+            request.user, model, object_id, vote_type
+        )
+
+        return render(
+            request,
+            "community/partials/vote_buttons.html",
+            {
+                "obj": obj,
+                "model_name": model_name,
+                "user_vote_type": user_vote_type,
+            },
+        )
+
+    def _toggle_update_vote(self, user, model, object_id, vote_type):
+        content_type = ContentType.objects.get_for_model(model)
+
+        vote, created = Vote.objects.get_or_create(
+            user=user,
+            content_type=content_type,
+            object_id=object_id,
+            defaults={"vote_type": vote_type},
+        )
+
+        if not created:
+            if vote.vote_type == vote_type:
+                vote.delete()
+                return 0
+            vote.vote_type = vote_type
+            vote.save()
+
+        return vote_type
