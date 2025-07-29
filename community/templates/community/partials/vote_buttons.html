@@ -1,0 +1,20 @@
+<div class="d-flex align-items-center"
+     hx-target="this"
+     hx-swap="outerHTML">
+  <form method="post" hx-post="{% url 'vote' model_name obj.id 1 %}">
+    {% csrf_token %}
+    <button type="submit"
+            class="btn btn-sm {% if user_vote_type == 1 %}btn-success{% else %}btn-outline-success{% endif %}">
+      👍
+    </button>
+  </form>
+  <span class="mx-2">{{ obj.upvotes }}</span>
+  <span class="mx-2">{{ obj.downvotes }}</span>
+  <form method="post" hx-post="{% url 'vote' model_name obj.id -1 %}">
+    {% csrf_token %}
+    <button type="submit"
+            class="btn btn-sm {% if user_vote_type == -1 %}btn-danger{% else %}btn-outline-danger{% endif %}">
+      👎
+    </button>
+  </form>
+</div>
