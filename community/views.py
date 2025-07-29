@@ -313,11 +313,7 @@ class QuestionEditView(LoginRequiredMixin, UpdateView):
         return reverse_lazy("question_detail", kwargs={"question_id": self.object.pk})
 
 
-class AnswerEditView(LoginRequiredMixin, UpdateView):
-    model = Answer
-    form_class = AnswerForm
-    template_name = "community/answer/edit.html"
-
+class AnswerGetObjectMixin:
     def get_object(self, queryset=None):
         return get_object_or_404(
             Answer,
@@ -325,6 +321,12 @@ class AnswerEditView(LoginRequiredMixin, UpdateView):
             question_id=self.kwargs["question_id"],
             author=self.request.user,
         )
+
+
+class AnswerEditView(LoginRequiredMixin, AnswerGetObjectMixin, UpdateView):
+    model = Answer
+    form_class = AnswerForm
+    template_name = "community/answer/edit.html"
 
     def get_success_url(self):
         return reverse(
@@ -336,17 +338,9 @@ class AnswerEditView(LoginRequiredMixin, UpdateView):
         )
 
 
-class AnswerDeleteView(LoginRequiredMixin, DeleteView):
+class AnswerDeleteView(LoginRequiredMixin, AnswerGetObjectMixin, DeleteView):
     model = Answer
     template_name = "community/answer/confirm_delete.html"
-
-    def get_object(self, queryset=None):
-        return get_object_or_404(
-            Answer,
-            pk=self.kwargs["answer_id"],
-            question_id=self.kwargs["question_id"],
-            author=self.request.user,
-        )
 
     def get_success_url(self):
         return reverse(

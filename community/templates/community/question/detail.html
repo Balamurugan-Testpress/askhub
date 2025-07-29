@@ -32,7 +32,7 @@
         {% if request.user == question.author %}
           <div class="mt-4">
             <a href="{% url 'question_edit' question.id %}"
-               class="btn btn-warning btn-sm">Edit</a>
+               class="btn btn-warning btn-sm me-2">Edit</a>
             <a href="{% url 'question_delete' question.id %}"
                class="btn btn-danger btn-sm">Delete Question</a>
           </div>
