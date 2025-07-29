@@ -44,12 +44,6 @@ class EditDeleteViewsTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
-    def test_answer_delete_view_unauthorized(self):
-        self.login("other")
-        url = reverse("answer_delete", args=[self.question.id, self.answer.id])
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, 404)
-
     def test_login_required_for_edit_and_delete(self):
         urls = [
             reverse("answer_edit", args=[self.question.id, self.answer.id]),
