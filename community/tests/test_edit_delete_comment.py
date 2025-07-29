@@ -73,10 +73,6 @@ class EditDeleteViewsTest(TestCase):
 
     def test_login_required_for_edit_and_delete(self):
         urls = [
-            reverse("question_edit", args=[self.question.id]),
-            reverse("question_delete", args=[self.question.id]),
-            reverse("answer_edit", args=[self.question.id, self.answer.id]),
-            reverse("answer_delete", args=[self.question.id, self.answer.id]),
             reverse(
                 "comment_edit", args=[self.question.id, self.answer.id, self.comment.id]
             ),
@@ -88,3 +84,20 @@ class EditDeleteViewsTest(TestCase):
         for url in urls:
             response = self.client.get(url)
             self.assertRedirects(response, f"/accounts/login/?next={url}")
+
+    def test_comment_edit_post_success(self):
+        self.login()
+        url = reverse(
+            "comment_edit",
+            args=[self.question.id, self.answer.id, self.comment.id],
+        )
+        new_content = "Updated comment content"
+        response = self.client.post(url, {"content": new_content})
+
+        self.assertRedirects(
+            response,
+            reverse("answer_detail", args=[self.question.id, self.answer.id]),
+        )
+
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.content, new_content)

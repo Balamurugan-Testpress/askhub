@@ -349,10 +349,7 @@ class AnswerDeleteView(LoginRequiredMixin, AnswerGetObjectMixin, DeleteView):
         )
 
 
-class CommentDeleteView(LoginRequiredMixin, DeleteView):
-    model = Comment
-    template_name = "community/comment/confirm_delete.html"
-
+class CommentGetObjectMixin:
     def get_object(self, queryset=None):
         return get_object_or_404(
             Comment,
@@ -361,6 +358,11 @@ class CommentDeleteView(LoginRequiredMixin, DeleteView):
             answer__question__id=self.kwargs["question_id"],
             author=self.request.user,
         )
+
+
+class CommentDeleteView(LoginRequiredMixin, CommentGetObjectMixin, DeleteView):
+    model = Comment
+    template_name = "community/comment/confirm_delete.html"
 
     def get_success_url(self):
         return reverse(
@@ -372,19 +374,10 @@ class CommentDeleteView(LoginRequiredMixin, DeleteView):
         )
 
 
-class CommentEditView(LoginRequiredMixin, UpdateView):
+class CommentEditView(LoginRequiredMixin, CommentGetObjectMixin, UpdateView):
     model = Comment
     form_class = CommentForm
     template_name = "community/comment/edit.html"
-
-    def get_object(self, queryset=None):
-        return get_object_or_404(
-            Comment,
-            pk=self.kwargs["comment_id"],
-            answer__id=self.kwargs["answer_id"],
-            answer__question__id=self.kwargs["question_id"],
-            author=self.request.user,
-        )
 
     def get_success_url(self):
         return reverse(
