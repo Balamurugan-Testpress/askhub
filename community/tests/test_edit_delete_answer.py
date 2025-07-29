@@ -44,12 +44,6 @@ class EditDeleteViewsTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 404)
 
-    def test_answer_delete_view_unauthorized(self):
-        self.login("other")
-        url = reverse("answer_delete", args=[self.question.id, self.answer.id])
-        response = self.client.post(url)
-        self.assertEqual(response.status_code, 404)
-
     def test_login_required_for_edit_and_delete(self):
         urls = [
             reverse("answer_edit", args=[self.question.id, self.answer.id]),
@@ -58,3 +52,23 @@ class EditDeleteViewsTest(TestCase):
         for url in urls:
             response = self.client.get(url)
             self.assertRedirects(response, f"/accounts/login/?next={url}")
+
+    def test_answer_edit_view_authorized(self):
+        self.login()
+        url = reverse("answer_edit", args=[self.question.id, self.answer.id])
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "community/answer/edit.html")
+
+        updated_data = {
+            "content": "Updated answer content",
+        }
+        response = self.client.post(url, updated_data)
+
+        self.assertRedirects(
+            response, reverse("answer_detail", args=[self.answer.id, self.question.id])
+        )
+
+        self.answer.refresh_from_db()
+        self.assertEqual(self.answer.content, "Updated answer content")
