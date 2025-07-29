@@ -7,9 +7,6 @@ from community.models import Answer, Question, Comment  # Include Comment model
 class AddCommentTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="test@123")
-        self.other_user = User.objects.create_user(
-            username="someone", password="pass123"
-        )
         self.question = Question.objects.create(
             title="Why is testing important?",
             description="Explain the purpose and benefits of writing tests.",
