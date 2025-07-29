@@ -17,11 +17,11 @@
           {% include "community/partials/vote_buttons.html" with obj=comment model_name="comment" user_vote_type=user_vote_type %}
         {% endwith %}
       {% else %}
-        <a href="#"
+        <a href="{% url 'comment_edit' comment.answer.question.id comment.answer.id comment.id %}"
            class="btn btn-sm btn-outline-warning d-flex align-items-center gap-1">
           <i class="bi bi-pencil"></i> Edit
         </a>
-        <a href="#"
+        <a href="{% url 'comment_delete' comment.answer.question.id comment.answer.id comment.id %}"
            class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1">
           <i class="bi bi-trash"></i> Delete
         </a>
