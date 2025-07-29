@@ -20,10 +20,26 @@ class EditDeleteViewsTest(TestCase):
 
     def test_question_edit_view_authorized(self):
         self.login()
+
+        self.question.author = self.author
+        self.question.save()
+
         url = reverse("question_edit", args=[self.question.id])
         response = self.client.get(url)
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "community/question/edit.html")
+
+        updated_data = {
+            "title": "Updated question title",
+            "description": "Updated question content",
+            "tags": "new,old",
+        }
+        response = self.client.post(url, updated_data)
+        self.assertEqual(response.status_code, 302)  # Redirect on success
+        self.question.refresh_from_db()
+        self.assertEqual(self.question.title, "Updated question title")
+        self.assertEqual(self.question.description, "Updated question content")
 
     def test_question_edit_view_unauthorized(self):
         self.login("other")
@@ -34,6 +50,11 @@ class EditDeleteViewsTest(TestCase):
     def test_question_delete_view_authorized(self):
         self.login()
         url = reverse("question_delete", args=[self.question.id])
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "community/question/confirm_delete.html")
+
         response = self.client.post(url)
         self.assertRedirects(response, reverse("question_list"))
         self.assertFalse(Question.objects.filter(id=self.question.id).exists())

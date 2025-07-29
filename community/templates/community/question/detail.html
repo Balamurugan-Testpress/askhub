@@ -54,7 +54,7 @@
           {% if request.user != answer.author %}
             {% include "community/partials/vote_buttons.html" with obj=answer model_name="answer" user_vote_type=answer_vote_map|get_item:answer.id %}
           {% else %}
-            <div class="" id="">
+            <div>
               <a href="#" class="btn btn-warning btn-sm">Edit</a>
               <a href="#" class="btn btn-danger btn-sm">Delete</a>
             </div>

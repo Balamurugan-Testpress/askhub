@@ -300,12 +300,8 @@ class QuestionEditView(LoginRequiredMixin, UpdateView):
     template_name = "community/question/edit.html"
     pk_url_kwarg = "question_id"
 
-    def get_object(self, queryset=None):
-        return get_object_or_404(
-            Question.objects.only("id", "title", "description", "author"),
-            pk=self.kwargs.get(self.pk_url_kwarg),
-            author=self.request.user,
-        )
+    def get_queryset(self):
+        return Question.objects.filter(author=self.request.user)
 
     def get_initial(self):
         initial = super().get_initial()
