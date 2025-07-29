@@ -49,6 +49,10 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
             .annotate(score=Sum("votes__vote_type"))
             .order_by("-score", "-created_at")
         )
+        user = self.request.user
+        context["user_vote_type"] = self.object.get_user_vote(user)
+        vote_map = {answer.id: answer.get_user_vote(user) for answer in all_answers}
+        context["answer_vote_map"] = vote_map
 
         page = self.request.GET.get("page")
         paginator = Paginator(all_answers, 5)
@@ -161,8 +165,11 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
             Comment.objects.filter(answer=self.object)
             .select_related("author")
             .prefetch_related("votes")
+<<<<<<< HEAD
             .annotate(score=Sum("votes__vote_type"))
             .order_by("-score", "-created_at")
+=======
+>>>>>>> fdfa352 (feat: implement vote for comments,questions and answers)
         )
 
     def _get_comment_vote_map(self, user, comments):
