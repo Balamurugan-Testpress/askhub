@@ -4,6 +4,8 @@ from community.views import (
     QuestionCreateView,
     QuestionDetailView,
     QuestionListView,
+    QuestionEditView,
+    QuestionDeleteView,
     SubmitAnswerView,
     ToggleVoteView,
 )
@@ -30,5 +32,15 @@ urlpatterns = [
         r"^vote/(?P<model_name>[^/]+)/(?P<object_id>\d+)/(?P<vote_type>-?\d+)/$",
         ToggleVoteView.as_view(),
         name="vote",
+    ),
+    path(
+        "question/<int:question_id>/delete/",
+        QuestionDeleteView.as_view(),
+        name="question_delete",
+    ),
+    path(
+        "question/<int:question_id>/edit/",
+        QuestionEditView.as_view(),
+        name="question_edit",
     ),
 ]
