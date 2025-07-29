@@ -5,7 +5,7 @@ from community.views import (
     QuestionDetailView,
     QuestionListView,
     SubmitAnswerView,
-    VoteView,
+    ToggleVoteView,
 )
 
 urlpatterns = [
@@ -28,7 +28,7 @@ urlpatterns = [
     ),
     re_path(
         r"^vote/(?P<model_name>[^/]+)/(?P<object_id>\d+)/(?P<vote_type>-?\d+)/$",
-        VoteView.as_view(),
+        ToggleVoteView.as_view(),
         name="vote",
     ),
 ]

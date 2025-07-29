@@ -203,7 +203,7 @@ class SubmitAnswerView(LoginRequiredMixin, CreateView):
         return reverse("question_detail", kwargs={"question_id": self.question.pk})
 
 
-class VoteView(LoginRequiredMixin, View):
+class ToggleVoteView(LoginRequiredMixin, View):
     model_map = {
         "question": Question,
         "answer": Answer,
@@ -216,14 +216,16 @@ class VoteView(LoginRequiredMixin, View):
             if vote_type not in [1, -1]:
                 return HttpResponseBadRequest("Invalid vote type.")
         except (ValueError, TypeError):
-            return self.HttpResponseBadRequestalid vote type.")
+            return HttpResponseBadRequest("Invalid vote type.")
 
         model = self.model_map.get(model_name)
         if not model:
-            return self.HttpResponseBadRequestalid model name.")
+            return HttpResponseBadRequest("Invalid model type.")
 
         obj = get_object_or_404(model, pk=object_id)
-        user_vote_type = self._toggle_update_vote(request.user, model, object_id, vote_type)
+        user_vote_type = self._toggle_update_vote(
+            request.user, model, object_id, vote_type
+        )
 
         return render(
             request,
@@ -253,4 +255,3 @@ class VoteView(LoginRequiredMixin, View):
             vote.save()
 
         return vote_type
-
