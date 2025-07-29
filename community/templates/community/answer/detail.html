@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load widget_tweaks %}
 {% load humanize %}
 {% block title %}Answer by {{ answer.author.username }}{% endblock %}
 {% block content %}
@@ -40,11 +41,41 @@
             <a href="#" class="btn btn-danger btn-sm">Delete</a>
           </div>
         {% endif %}
+        <div class="mt-4">
+          <button type="button"
+                  class="btn btn-sm btn-info"
+                  onclick="this.nextElementSibling.classList.toggle('d-none')">
+            <i class="bi bi-chat-left-text"></i> Add Comment
+          </button>
+          <form method="post" class="card shadow-sm p-3 mt-3 d-none border-0">
+            {% csrf_token %}
+            {{ comment_form.non_field_errors }}
+            <div class="mb-3">
+              {{ comment_form.content.label_tag }}
+              {% render_field comment_form.content class="form-control" rows="3" placeholder="Write a comment..." %}
+              {{ comment_form.content.errors }}
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="button"
+                      class="btn btn-link"
+                      onclick="this.closest('form').classList.add('d-none')">Cancel</button>
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
     <div class="mt-5">
-      <h5 class="text-muted">Comments</h5>
-      <p class="text-secondary">You’ll be able to add and view threaded comments here.</p>
+      <h5 class="text-muted mb-3">Comments</h5>
+      {% if comments %}
+        {% for comment in comments %}
+          {% if not comment.parent_comment %}
+            {% include "comments/_comment.html" with comment=comment %}
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <p class="fst-italic text-secondary">No comments yet.</p>
+      {% endif %}
     </div>
     <div class="mt-4">
       <a href="{% url 'question_detail' answer.question.id %}"
