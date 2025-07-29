@@ -46,7 +46,8 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
         all_answers = (
             self.object.answers.select_related("author")
             .prefetch_related("votes")
-            .order_by("-created_at")
+            .annotate(score=Sum("votes__vote_type"))
+            .order_by("-score", "-created_at")
         )
 
         page = self.request.GET.get("page")
@@ -60,7 +61,24 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
             answers = paginator.page(paginator.num_pages)
 
         context["answers"] = answers
+        context["answer_vote_map"] = self._get_answer_vote_map(
+            self.request.user, all_answers
+        )
+
         return context
+
+    def _get_answer_vote_map(self, user, answers):
+        if not user.is_authenticated:
+            return {}
+
+        answer_ids = [a.id for a in answers]
+        vote_qs = Vote.objects.filter(
+            user=user,
+            content_type=ContentType.objects.get_for_model(Answer),
+            object_id__in=answer_ids,
+        ).values_list("object_id", "vote_type")
+
+        return {obj_id: vote_type for obj_id, vote_type in vote_qs}
 
 
 class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
@@ -143,6 +161,8 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
             Comment.objects.filter(answer=self.object)
             .select_related("author")
             .prefetch_related("votes")
+            .annotate(score=Sum("votes__vote_type"))
+            .order_by("-score", "-created_at")
         )
 
     def _get_comment_vote_map(self, user, comments):
