@@ -32,7 +32,7 @@
         {% if request.user == question.author %}
           <div class="mt-4">
             <a href="{% url 'question_edit' question.id %}"
-               class="btn btn-warning btn-sm">Edit</a>
+               class="btn btn-warning btn-sm me-2">Edit</a>
             <a href="{% url 'question_delete' question.id %}"
                class="btn btn-danger btn-sm">Delete Question</a>
           </div>
@@ -54,9 +54,11 @@
           {% if request.user != answer.author %}
             {% include "community/partials/vote_buttons.html" with obj=answer model_name="answer" user_vote_type=answer_vote_map|get_item:answer.id %}
           {% else %}
-            <div>
-              <a href="#" class="btn btn-warning btn-sm">Edit</a>
-              <a href="#" class="btn btn-danger btn-sm">Delete</a>
+            <div class="" id="">
+              <a href="{% url 'answer_edit' answer.question.id answer.id %}"
+                 class="btn btn-warning btn-sm">Edit</a>
+              <a href="{% url 'answer_delete' answer.question.id answer.id %}"
+                 class="btn btn-danger btn-sm">Delete</a>
             </div>
           {% endif %}
         </div>

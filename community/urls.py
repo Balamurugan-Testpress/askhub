@@ -6,6 +6,8 @@ from community.views import (
     QuestionListView,
     QuestionEditView,
     QuestionDeleteView,
+    AnswerEditView,
+    AnswerDeleteView,
     SubmitAnswerView,
     ToggleVoteView,
 )
@@ -42,5 +44,15 @@ urlpatterns = [
         "question/<int:question_id>/edit/",
         QuestionEditView.as_view(),
         name="question_edit",
+    ),
+    path(
+        "question/<int:question_id>/answer/<int:answer_id>/delete/",
+        AnswerDeleteView.as_view(),
+        name="answer_delete",
+    ),
+    path(
+        "question/<int:question_id>/answer/<int:answer_id>/edit/",
+        AnswerEditView.as_view(),
+        name="answer_edit",
     ),
 ]
