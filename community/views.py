@@ -160,11 +160,8 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
             Comment.objects.filter(answer=self.object)
             .select_related("author")
             .prefetch_related("votes")
-<<<<<<< HEAD
             .annotate(score=Sum("votes__vote_type"))
             .order_by("-score", "-created_at")
-=======
->>>>>>> fdfa352 (feat: implement vote for comments,questions and answers)
         )
 
     def _get_comment_vote_map(self, user, comments):
