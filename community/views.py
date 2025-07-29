@@ -46,7 +46,8 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
         all_answers = (
             self.object.answers.select_related("author")
             .prefetch_related("votes")
-            .order_by("-created_at")
+            .annotate(score=Sum("votes__vote_type"))
+            .order_by("-score", "-created_at")
         )
 
         page = self.request.GET.get("page")
