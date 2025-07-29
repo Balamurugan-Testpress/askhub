@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
@@ -95,25 +96,29 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
         self.object = self.get_object()
         form = self.get_form()
         if form.is_valid():
-            comment = form.save(commit=False)
-            comment.answer = self.object
-            comment.author = request.user
-
-            parent_comment_id = request.POST.get("parent_comment_id")
-            if parent_comment_id:
-                try:
-                    parent = Comment.objects.get(id=parent_comment_id)
-                    comment.parent_comment = parent
-                    comment.answer = None
-                except Comment.DoesNotExist:
-                    form.add_error(
-                        None, "The comment you are replying to does not exist."
-                    )
-                    return self.form_invalid(form)
+            comment = self._create_comment_from_form(form, request)
+            if isinstance(comment, HttpResponse):
+                return comment
             comment.save()
             return super().form_valid(form)
-        else:
-            return self.form_invalid(form)
+        return self.form_invalid(form)
+
+    def _create_comment_from_form(self, form, request):
+        comment = form.save(commit=False)
+        comment.answer = self.object
+        comment.author = request.user
+
+        parent_comment_id = request.POST.get("parent_comment_id")
+        if parent_comment_id:
+            try:
+                parent = Comment.objects.get(id=parent_comment_id)
+                comment.parent_comment = parent
+                comment.answer = None
+            except Comment.DoesNotExist:
+                form.add_error(None, "The comment you are replying to does not exist.")
+                return self.form_invalid(form)
+
+        return comment
 
 
 class QuestionCreateView(LoginRequiredMixin, CreateView):

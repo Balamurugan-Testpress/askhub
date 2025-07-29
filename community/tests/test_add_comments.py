@@ -96,7 +96,7 @@ class AddCommentTest(TestCase):
         self.assertEqual(response.status_code, 200)
         reply = Comment.objects.get(content="This is a reply")
         self.assertEqual(reply.parent_comment, parent_comment)
-        self.assertIsNone(reply.answer)  # Since it's a reply, answer should be null
+        self.assertIsNone(reply.answer)
         self.assertEqual(reply.author, self.user)
 
     def test_reply_with_invalid_parent_comment_id(self):
@@ -106,12 +106,16 @@ class AddCommentTest(TestCase):
             self.url,
             {
                 "content": "Trying invalid parent id",
-                "parent_comment_id": "9999",  # Assuming this ID doesn't exist
+                "parent_comment_id": "9999",  # Non-existent ID
             },
             follow=True,
         )
 
+        self.assertFalse(
+            Comment.objects.filter(content="Trying invalid parent id").exists()
+        )
+
         self.assertEqual(response.status_code, 200)
-        comment = Comment.objects.get(content="Trying invalid parent id")
-        self.assertIsNone(comment.parent_comment)  # Should fallback to normal comment
-        self.assertEqual(comment.answer, self.answer)
+        self.assertFormError(
+            response, "form", None, "The comment you are replying to does not exist."
+        )
