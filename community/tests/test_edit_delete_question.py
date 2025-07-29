@@ -55,6 +55,7 @@ class EditDeleteViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "community/question/confirm_delete.html")
 
+        response = self.client.post(url)
         self.assertRedirects(response, reverse("question_list"))
         self.assertFalse(Question.objects.filter(id=self.question.id).exists())
 
