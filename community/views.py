@@ -5,7 +5,14 @@ from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http.response import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
-from django.views.generic import CreateView, DetailView, ListView, View
+from django.views.generic import (
+    CreateView,
+    DetailView,
+    ListView,
+    UpdateView,
+    View,
+    DeleteView,
+)
 from django.views.generic.edit import FormMixin
 from taggit.models import Tag
 from django.db.models import Sum
@@ -275,3 +282,32 @@ class ToggleVoteView(LoginRequiredMixin, View):
             vote.save()
 
         return vote_type
+
+
+class QuestionDeleteView(LoginRequiredMixin, DeleteView):
+    model = Question
+    success_url = reverse_lazy("question_list")
+    template_name = "community/question/confirm_delete.html"
+    pk_url_kwarg = "question_id"
+
+    def get_queryset(self):
+        return Question.objects.filter(author=self.request.user)
+
+
+class QuestionEditView(LoginRequiredMixin, UpdateView):
+    model = Question
+    form_class = QuestionForm
+    template_name = "community/question/edit.html"
+    pk_url_kwarg = "question_id"
+
+    def get_queryset(self):
+        return Question.objects.filter(author=self.request.user)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        question = self.object
+        initial["tags"] = ", ".join(tag.name for tag in question.tags.all())
+        return initial
+
+    def get_success_url(self):
+        return reverse_lazy("question_detail", kwargs={"question_id": self.object.pk})
