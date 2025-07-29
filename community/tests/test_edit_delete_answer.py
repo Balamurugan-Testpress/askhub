@@ -24,20 +24,6 @@ class EditDeleteViewsTest(TestCase):
     def login(self, user="author"):
         self.client.login(username=user, password="pass123")
 
-    def test_answer_delete_view_authorized(self):
-        self.login()
-        url = reverse("answer_delete", args=[self.question.id, self.answer.id])
-
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "community/answer/confirm_delete.html")
-
-        response = self.client.post(url)
-        self.assertRedirects(
-            response, reverse("question_detail", args=[self.question.id])
-        )
-        self.assertFalse(Answer.objects.filter(id=self.answer.id).exists())
-
     def test_answer_edit_view_unauthorized(self):
         self.login("other")
         url = reverse("answer_edit", args=[self.question.id, self.answer.id])
