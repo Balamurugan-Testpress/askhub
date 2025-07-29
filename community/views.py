@@ -56,6 +56,10 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
             .annotate(score=Sum("votes__vote_type"))
             .order_by("-score", "-created_at")
         )
+        user = self.request.user
+        context["user_vote_type"] = self.object.get_user_vote(user)
+        vote_map = {answer.id: answer.get_user_vote(user) for answer in all_answers}
+        context["answer_vote_map"] = vote_map
 
         page = self.request.GET.get("page")
         paginator = Paginator(all_answers, 5)
@@ -68,10 +72,6 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
             answers = paginator.page(paginator.num_pages)
 
         context["answers"] = answers
-        context["answer_vote_map"] = self._get_answer_vote_map(
-            self.request.user, all_answers
-        )
-
         return context
 
     def _get_answer_vote_map(self, user, answers):
