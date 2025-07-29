@@ -6,7 +6,7 @@ from django.http.response import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView, View
-from django.views.generic.edit import FormMixin
+from django.views.generic.edit import DeleteView, FormMixin, UpdateView
 from taggit.models import Tag
 from django.db.models import Sum
 from community.forms import AnswerForm, CommentForm, QuestionForm
@@ -49,6 +49,10 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
             .annotate(score=Sum("votes__vote_type"))
             .order_by("-score", "-created_at")
         )
+        user = self.request.user
+        context["user_vote_type"] = self.object.get_user_vote(user)
+        vote_map = {answer.id: answer.get_user_vote(user) for answer in all_answers}
+        context["answer_vote_map"] = vote_map
 
         page = self.request.GET.get("page")
         paginator = Paginator(all_answers, 5)
@@ -275,3 +279,125 @@ class ToggleVoteView(LoginRequiredMixin, View):
             vote.save()
 
         return vote_type
+
+
+class QuestionDeleteView(LoginRequiredMixin, DeleteView):
+    model = Question
+    success_url = reverse_lazy("question_list")
+    template_name = "community/question/confirm_delete.html"
+    pk_url_kwarg = "question_id"
+
+    def get_queryset(self):
+        return Question.objects.filter(author=self.request.user)
+
+
+class QuestionEditView(LoginRequiredMixin, UpdateView):
+    model = Question
+    form_class = QuestionForm
+    template_name = "community/question/edit.html"
+    pk_url_kwarg = "question_id"
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(
+            Question.objects.only("id", "title", "description", "author"),
+            pk=self.kwargs.get(self.pk_url_kwarg),
+            author=self.request.user,
+        )
+
+    def get_initial(self):
+        initial = super().get_initial()
+        question = self.object
+        initial["tags"] = ", ".join(tag.name for tag in question.tags.all())
+        return initial
+
+    def get_success_url(self):
+        return reverse_lazy("question_detail", kwargs={"question_id": self.object.pk})
+
+
+class AnswerEditView(LoginRequiredMixin, UpdateView):
+    model = Answer
+    form_class = AnswerForm
+    template_name = "community/answer/edit.html"
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(
+            Answer,
+            pk=self.kwargs["answer_id"],
+            question_id=self.kwargs["question_id"],
+            author=self.request.user,
+        )
+
+    def get_success_url(self):
+        return reverse(
+            "answer_detail",
+            kwargs={
+                "question_id": self.object.question_id,
+                "answer_id": self.object.id,
+            },
+        )
+
+
+class AnswerDeleteView(LoginRequiredMixin, DeleteView):
+    model = Answer
+    template_name = "community/answer/confirm_delete.html"
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(
+            Answer,
+            pk=self.kwargs["answer_id"],
+            question_id=self.kwargs["question_id"],
+            author=self.request.user,
+        )
+
+    def get_success_url(self):
+        return reverse(
+            "question_detail",  # Redirecting to the question after answer deletion
+            kwargs={"question_id": self.object.question_id},
+        )
+
+
+class CommentDeleteView(LoginRequiredMixin, DeleteView):
+    model = Comment
+    template_name = "community/comment/confirm_delete.html"
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(
+            Comment,
+            pk=self.kwargs["comment_id"],
+            answer__id=self.kwargs["answer_id"],
+            answer__question__id=self.kwargs["question_id"],
+            author=self.request.user,
+        )
+
+    def get_success_url(self):
+        return reverse(
+            "answer_detail",
+            kwargs={
+                "question_id": self.object.answer.question.id,
+                "answer_id": self.object.answer.id,
+            },
+        )
+
+
+class CommentEditView(LoginRequiredMixin, UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = "community/comment/edit.html"
+
+    def get_object(self, queryset=None):
+        return get_object_or_404(
+            Comment,
+            pk=self.kwargs["comment_id"],
+            answer__id=self.kwargs["answer_id"],
+            answer__question__id=self.kwargs["question_id"],
+            author=self.request.user,
+        )
+
+    def get_success_url(self):
+        return reverse(
+            "answer_detail",
+            kwargs={
+                "question_id": self.object.answer.question.id,
+                "answer_id": self.object.answer.id,
+            },
+        )

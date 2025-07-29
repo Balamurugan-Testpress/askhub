@@ -31,8 +31,10 @@
         </div>
         {% if request.user == question.author %}
           <div class="mt-4">
-            <a href="#" class="btn btn-warning btn-sm me-2">Edit</a>
-            <a href="#" class="btn btn-danger btn-sm">Delete</a>
+            <a href="{% url 'question_edit' question.id %}"
+               class="btn btn-warning btn-sm">Edit</a>
+            <a href="{% url 'question_delete' question.id %}"
+               class="btn btn-danger btn-sm">Delete Question</a>
           </div>
         {% endif %}
       </div>
@@ -49,7 +51,16 @@
             </div>
             <p class="mt-3 mb-0">{{ answer.content|linebreaks }}</p>
           </a>
-          {% include "community/partials/vote_buttons.html" with obj=answer model_name="answer" user_vote_type=answer_vote_map|get_item:answer.id %}
+          {% if request.user != answer.author %}
+            {% include "community/partials/vote_buttons.html" with obj=answer model_name="answer" user_vote_type=answer_vote_map|get_item:answer.id %}
+          {% else %}
+            <div class="" id="">
+              <a href="{% url 'answer_edit' answer.question.id answer.id %}"
+                 class="btn btn-warning btn-sm">Edit</a>
+              <a href="{% url 'answer_delete' answer.question.id answer.id %}"
+                 class="btn btn-danger btn-sm">Delete</a>
+            </div>
+          {% endif %}
         </div>
       </div>
     {% endfor %}

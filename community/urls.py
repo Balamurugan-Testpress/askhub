@@ -1,8 +1,14 @@
 from django.urls import path, re_path
 from community.views import (
+    AnswerDeleteView,
     AnswerDetailView,
+    AnswerEditView,
+    CommentDeleteView,
+    CommentEditView,
     QuestionCreateView,
+    QuestionDeleteView,
     QuestionDetailView,
+    QuestionEditView,
     QuestionListView,
     SubmitAnswerView,
     ToggleVoteView,
@@ -30,5 +36,35 @@ urlpatterns = [
         r"^vote/(?P<model_name>[^/]+)/(?P<object_id>\d+)/(?P<vote_type>-?\d+)/$",
         ToggleVoteView.as_view(),
         name="vote",
+    ),
+    path(
+        "question/<int:question_id>/delete/",
+        QuestionDeleteView.as_view(),
+        name="question_delete",
+    ),
+    path(
+        "question/<int:question_id>/edit/",
+        QuestionEditView.as_view(),
+        name="question_edit",
+    ),
+    path(
+        "question/<int:question_id>/answer/<int:answer_id>/delete/",
+        AnswerDeleteView.as_view(),
+        name="answer_delete",
+    ),
+    path(
+        "question/<int:question_id>/answer/<int:answer_id>/edit/",
+        AnswerEditView.as_view(),
+        name="answer_edit",
+    ),
+    path(
+        "question/<int:question_id>/answer/<int:answer_id>/comment/<int:comment_id>/delete/",
+        CommentDeleteView.as_view(),
+        name="comment_delete",
+    ),
+    path(
+        "question/<int:question_id>/answer/<int:answer_id>/comment/<int:comment_id>/edit/",
+        CommentEditView.as_view(),
+        name="comment_edit",
     ),
 ]

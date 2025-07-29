@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}Edit Answer{% endblock %}
+{% block content %}
+  <div class="container my-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title mb-4">Edit Your Answer</h2>
+        <form method="post" class="p-3 border rounded bg-light">
+          {% csrf_token %}
+          {{ form.non_field_errors }}
+          <div class="mb-3">
+            {{ form.content.label_tag }}
+            {% render_field form.content class="form-control" rows="4" placeholder="Update your answer..." %}
+            {{ form.content.errors }}
+          </div>
+          <div class="d-flex justify-content-end">
+            <a href="javascript:history.back()"
+               class="btn btn-outline-secondary me-2">Cancel</a>
+            <button type="submit" class="btn btn-info">💾 Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}
