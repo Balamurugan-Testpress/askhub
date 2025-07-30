@@ -52,7 +52,7 @@
                 {% if question.tags.all %}
                   <div class="mt-2">
                     {% for tag in question.tags.all %}
-                      <a href="?q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ tag.name }}"
+                      <a href="?q={{ filterset.form.q.value|default_if_none:''|urlencode }}&tag={{ tag.name|urlencode }}"
                          class="text-decoration-none">
                         <span class="badge mx-1 {% if tag.name in filterset.form.tag.value %}bg-primary{% else %}bg-secondary{% endif %}">
                           {{ tag.name }}
@@ -77,11 +77,11 @@
           {% if page_obj.has_previous %}
             <li class="page-item">
               <a class="page-link"
-                 href="?page=1&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|default_if_none:'' }}">&laquo; First</a>
+                 href="?page=1&q={{ filterset.form.q.value|default_if_none:''|urlencode }}&tag={{ filterset.form.tag.value|default_if_none:''|urlencode }}">&laquo; First</a>
             </li>
             <li class="page-item">
               <a class="page-link"
-                 href="?page={{ page_obj.previous_page_number }}&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|join:','|urlencode }}">Previous</a>
+                 href="?page={{ page_obj.previous_page_number }}&q={{ filterset.form.q.value|default_if_none:''|urlencode }}&tag={{ filterset.form.tag.value|default_if_none:''|urlencode }}">Previous</a>
             </li>
           {% else %}
             <li class="page-item disabled">
@@ -97,11 +97,11 @@
           {% if page_obj.has_next %}
             <li class="page-item">
               <a class="page-link"
-                 href="?page={{ page_obj.next_page_number }}&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|default_if_none:'' }}">Next</a>
+                 href="?page={{ page_obj.next_page_number }}&q={{ filterset.form.q.value|default_if_none:''|urlencode }}&tag={{ filterset.form.tag.value|default_if_none:''|urlencode }}">Next</a>
             </li>
             <li class="page-item">
               <a class="page-link"
-                 href="?page={{ page_obj.paginator.num_pages }}&q={{ filterset.form.q.value|default_if_none:'' }}&tag={{ filterset.form.tag.value|default_if_none:'' }}">Last &raquo;</a>
+                 href="?page={{ page_obj.paginator.num_pages }}&q={{ filterset.form.q.value|default_if_none:''|urlencode }}&tag={{ filterset.form.tag.value|default_if_none:''|urlencode }}">Last &raquo;</a>
             </li>
           {% else %}
             <li class="page-item disabled">
