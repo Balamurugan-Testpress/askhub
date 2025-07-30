@@ -6,9 +6,9 @@
     <form method="post">
       {% csrf_token %}
       {{ form.as_p }}
-      <button type="submit" class="btn btn-info">save</button>
-      <a href="{% url "question_detail" question_id=object.id %}"
+      <a href="{% url 'question_detail' question_id=object.id %}"
          class="btn btn-outline-secondary me-2">cancel</a>
+      <button type="submit" class="btn btn-info">save</button>
     </form>
   </div>
 {% endblock %}
