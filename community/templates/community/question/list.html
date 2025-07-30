@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load custom_filters %}
 {% block title %}Questions{% endblock %}
 {% block content %}
   <div class="container my-5">
@@ -69,7 +70,13 @@
                     {% endif %}
                   </div>
                   <div class="text-end">
-                    <small class="text-muted d-block">{{ question.created_at|date:"M d, Y" }}</small>
+                    <div class="mb-1">
+                      <small class="text-muted d-block">{{ question.created_at|date:"M d, Y" }}</small>
+                      <small class="text-muted">{{ question.answer_count }} answers</small>
+                    </div>
+                    <div class="mt-2">
+                      {% include "community/partials/vote_buttons.html" with obj=question model_name="question" user_vote_type=question_vote_map|get_item:question.id %}
+                    </div>
                   </div>
                 </div>
               </div>
