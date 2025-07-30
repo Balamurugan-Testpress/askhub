@@ -48,26 +48,30 @@
           <div class="col-md-12 mb-3">
             <div class="card shadow-sm">
               <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                  <a href="{% url "question_detail" question.id %}"
-                     class="text-decoration-none">
-                    <h5 class="card-title mb-0">{{ question.title }}</h5>
-                  </a>
-                  <small class="text-muted">{{ question.created_at|date:"M d, Y" }}</small>
-                </div>
-                <p class="card-subtitle text-muted mb-2">by {{ question.author }}</p>
-                {% if question.tags.all %}
-                  <div class="mt-2">
-                    {% for tag in question.tags.all %}
-                      <a href="?q={{ filterset.form.q.value|default_if_none:''|urlencode }}&tag={{ tag.name|urlencode }}"
-                         class="text-decoration-none">
-                        <span class="badge mx-1 {% if tag.name in filterset.form.tag.value %}bg-primary{% else %}bg-secondary{% endif %}">
-                          {{ tag.name }}
-                        </span>
-                      </a>
-                    {% endfor %}
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <div>
+                    <a href="{% url 'question_detail' question.id %}"
+                       class="text-decoration-none">
+                      <h5 class="card-title mb-1">{{ question.title }}</h5>
+                    </a>
+                    <p class="card-subtitle text-muted mb-1">by {{ question.author }}</p>
+                    {% if question.tags.all %}
+                      <div class="mt-1">
+                        {% for tag in question.tags.all %}
+                          <a href="?q={{ filterset.form.q.value|default_if_none:''|urlencode }}&tag={{ tag.name|urlencode }}"
+                             class="text-decoration-none">
+                            <span class="badge mx-1 {% if tag.name in filterset.form.tag.value %}bg-primary{% else %}bg-secondary{% endif %}">
+                              {{ tag.name }}
+                            </span>
+                          </a>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
                   </div>
-                {% endif %}
+                  <div class="text-end">
+                    <small class="text-muted d-block">{{ question.created_at|date:"M d, Y" }}</small>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -77,49 +81,6 @@
       <div class="alert alert-info">
         No questions found matching your filters. <a href="{% url 'question_list' %}">Clear filters</a>
       </div>
-    {% endif %}
-    {% if is_paginated %}
-      <nav aria-label="Page navigation" class="mt-4">
-        <ul class="pagination justify-content-center">
-          {% if page_obj.has_previous %}
-            <li class="page-item">
-              <a class="page-link"
-                 href="?page=1&q={{ filterset.form.q.value|default_if_none:''|urlencode }}&tag={{ filterset.form.tag.value|default_if_none:''|urlencode }}">&laquo; First</a>
-            </li>
-            <li class="page-item">
-              <a class="page-link"
-                 href="?page={{ page_obj.previous_page_number }}&q={{ filterset.form.q.value|default_if_none:''|urlencode }}&tag={{ filterset.form.tag.value|default_if_none:''|urlencode }}">Previous</a>
-            </li>
-          {% else %}
-            <li class="page-item disabled">
-              <span class="page-link">&laquo; First</span>
-            </li>
-            <li class="page-item disabled">
-              <span class="page-link">Previous</span>
-            </li>
-          {% endif %}
-          <li class="page-item disabled">
-            <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-          </li>
-          {% if page_obj.has_next %}
-            <li class="page-item">
-              <a class="page-link"
-                 href="?page={{ page_obj.next_page_number }}&q={{ filterset.form.q.value|default_if_none:''|urlencode }}&tag={{ filterset.form.tag.value|default_if_none:''|urlencode }}">Next</a>
-            </li>
-            <li class="page-item">
-              <a class="page-link"
-                 href="?page={{ page_obj.paginator.num_pages }}&q={{ filterset.form.q.value|default_if_none:''|urlencode }}&tag={{ filterset.form.tag.value|default_if_none:''|urlencode }}">Last &raquo;</a>
-            </li>
-          {% else %}
-            <li class="page-item disabled">
-              <span class="page-link">Next</span>
-            </li>
-            <li class="page-item disabled">
-              <span class="page-link">Last &raquo;</span>
-            </li>
-          {% endif %}
-        </ul>
-      </nav>
     {% endif %}
   </div>
 {% endblock %}
