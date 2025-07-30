@@ -7,11 +7,15 @@
         <h2 class="card-title text-danger">Are you sure you want to delete this question?</h2>
         <p class="text-muted">This action cannot be undone.</p>
         <div class="mb-3">
-          <strong>Title:</strong> {{ object.title }}
-          <br>
-          <strong>Asked by:</strong> {{ object.author.username }}
-          <br>
-          <strong>Posted on:</strong> {{ object.created_at|date:"M d, Y H:i" }}
+          <p>
+            <strong>Title:</strong> {{ object.title }}
+          </p>
+          <p>
+            <strong>Asked by:</strong> {{ object.author.username }}
+          </p>
+          <p>
+            <strong>Posted on:</strong> {{ object.created_at|date:"M d, Y H:i" }}
+          </p>
         </div>
         <form method="post">
           {% csrf_token %}
