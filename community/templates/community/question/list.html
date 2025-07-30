@@ -27,19 +27,20 @@
         </select>
       </div>
       <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">Apply</button>
+        <button type="submit" class="btn btn-primary w-100 small">Apply</button>
       </div>
       <div class="col-md-2">
-        <a class='text-decoration-none ' href= {% url 'question_create' %}>
-          <div class="btn btn-warning w-100">Ask Question</div>
-        </a>
+        <a href="{% url 'question_create' %}"
+           class="btn btn-warning w-100 small text-decoration-none">Ask Question</a>
       </div>
-      {% if filterset.form.tag.value or filterset.form.q.value %}
-        <div class="col-md-1">
-          <a class="btn btn-sm btn-danger w-100 text-decoration-none"
-             href="{% url 'question_list' %}">Clear filter</a>
-        </div>
-      {% endif %}
+      <div class="col-md-1">
+        {% if filterset.form.tag.value or filterset.form.q.value %}
+          <a href="{% url 'question_list' %}"
+             class="btn btn-danger w-100 small text-decoration-none">Clear</a>
+        {% else %}
+          <button class="btn btn-outline-secondary w-100 small" disabled>Clear</button>
+        {% endif %}
+      </div>
     </form>
     {% if question_list %}
       <div class="row">
