@@ -129,7 +129,10 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
             comment.answer = self.object
             comment.author = request.user
 
-            parent = self.get_parent_comment(request)
+            parent = self.get_parent_comment(request, form)
+            if form.errors:  # Validation failed (invalid parent)
+                return self.form_invalid(form)
+
             if parent:
                 comment.parent_comment = parent
 
@@ -154,13 +157,13 @@ class AnswerDetailView(LoginRequiredMixin, FormMixin, DetailView):
 
         return comment
 
-    def get_parent_comment(self, request):
+    def get_parent_comment(self, request, form):
         parent_comment_id = request.POST.get("parent_comment_id")
         if parent_comment_id:
             try:
                 return Comment.objects.get(id=parent_comment_id)
             except Comment.DoesNotExist:
-                return None
+                form.add_error(None, "The comment you are replying to does not exist.")
         return None
 
     def _get_comments_with_author_and_votes(self):

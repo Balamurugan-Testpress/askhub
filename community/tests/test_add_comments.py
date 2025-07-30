@@ -93,7 +93,7 @@ class AddCommentTest(TestCase):
         self.assertEqual(response.status_code, 200)
         reply = Comment.objects.get(content="This is a reply")
         self.assertEqual(reply.parent_comment, parent_comment)
-        self.assertIsNone(reply.answer)
+        self.assertEqual(reply.answer, self.answer)
         self.assertEqual(reply.author, self.user)
 
     def test_reply_with_invalid_parent_comment_id(self):
@@ -103,7 +103,7 @@ class AddCommentTest(TestCase):
             self.url,
             {
                 "content": "Trying invalid parent id",
-                "parent_comment_id": "9999",  # Non-existent ID
+                "parent_comment_id": "9999",
             },
             follow=True,
         )
