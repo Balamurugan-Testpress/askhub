@@ -53,6 +53,7 @@ class QuestionDetailView(LoginRequiredMixin, DetailView):
         all_answers = (
             self.object.answers.select_related("author")
             .prefetch_related("votes")
+            .annotate(comment_count=Count("comments"))
             .annotate(score=Sum("votes__vote_type"))
             .order_by("-score", "-created_at")
         )
