@@ -3,10 +3,10 @@
 {% block title %}Edit Answer{% endblock %}
 {% block content %}
   <div class="container my-5">
-    <div class="card shadow-sm">
+    <div class="card">
       <div class="card-body">
         <h2 class="card-title mb-4">Edit Your Answer</h2>
-        <form method="post" class="p-3 border rounded bg-light">
+        <form method="post" class="">
           {% csrf_token %}
           {{ form.non_field_errors }}
           <div class="mb-3">
@@ -17,7 +17,7 @@
           <div class="d-flex justify-content-end">
             <a href="{% url 'answer_detail' question_id=object.question.id answer_id=object.id %}"
                class="btn btn-outline-secondary me-2">Cancel</a>
-            <button type="submit" class="btn btn-info">💾 Save Changes</button>
+            <button type="submit" class="btn btn-info">Save Changes</button>
           </div>
         </form>
       </div>
