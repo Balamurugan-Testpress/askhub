@@ -18,32 +18,26 @@
             {% for tag in question.tags.all %}<span class="badge bg-primary me-1">{{ tag.name }}</span>{% endfor %}
           </div>
         {% endif %}
-        <div class="mt-4 d-flex align-items-center">
+        <div class="mt-4 d-flex flex-wrap align-items-center gap-2">
           {% if request.user != question.author %}
-            <div class="btn-group g-5" role="group" aria-label="Vote buttons">
-              {% include "community/partials/vote_buttons.html" with obj=question model_name='question' user_vote_type=user_vote_type %}
-              <a class="text-decoration-none"
-                 href="{% url "submit_answer" question.id %}">
-                <button type="submit" class="btn mx-4 p-2  rounded btn-success btn-sm">Answer the question</button>
-              </a>
+            {% include "community/partials/vote_buttons.html" with obj=question model_name='question' user_vote_type=user_vote_type %}
+          {% else %}
+            <div>
+              <a href="{% url 'question_edit' question.id %}"
+                 class="btn btn-warning btn-sm">Edit</a>
+              <a href="{% url 'question_delete' question.id %}"
+                 class="btn btn-danger btn-sm">Delete</a>
             </div>
           {% endif %}
+          <a href="{% url 'submit_answer' question.id %}"
+             class="btn btn-success btn-sm">Answer the question</a>
         </div>
-        {% if request.user == question.author %}
-          <div class="mt-4">
-            <a href="{% url 'question_edit' question.id %}"
-               class="btn btn-warning btn-sm me-2">Edit</a>
-            <a href="{% url 'question_delete' question.id %}"
-               class="btn btn-danger btn-sm">Delete Question</a>
-          </div>
-        {% endif %}
       </div>
     </div>
-    <div class="" id=""></div>
     {% for answer in answers %}
       <div class="card my-3 shadow-sm">
         <div class="card-body">
-          <a class="text-decoration-none "
+          <a class="text-decoration-none"
              href="{% url 'answer_detail' question.id answer.id %}">
             <div class="d-flex justify-content-between text-muted small">
               <div>{{ answer.author.username }}</div>
@@ -51,16 +45,16 @@
             </div>
             <p class="mt-3 mb-0">{{ answer.content|linebreaks }}</p>
           </a>
-          {% if request.user != answer.author %}
-            {% include "community/partials/vote_buttons.html" with obj=answer model_name="answer" user_vote_type=answer_vote_map|get_item:answer.id %}
-          {% else %}
-            <div class="" id="">
+          <div class="mt-3 d-flex flex-wrap align-items-center gap-2">
+            {% if request.user != answer.author %}
+              {% include "community/partials/vote_buttons.html" with obj=answer model_name="answer" user_vote_type=answer_vote_map|get_item:answer.id %}
+            {% else %}
               <a href="{% url 'answer_edit' answer.question.id answer.id %}"
                  class="btn btn-warning btn-sm">Edit</a>
               <a href="{% url 'answer_delete' answer.question.id answer.id %}"
                  class="btn btn-danger btn-sm">Delete</a>
-            </div>
-          {% endif %}
+            {% endif %}
+          </div>
         </div>
       </div>
     {% endfor %}
