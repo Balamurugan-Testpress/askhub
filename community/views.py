@@ -15,7 +15,7 @@ from django.views.generic import (
 )
 from django.views.generic.edit import FormMixin
 from taggit.models import Tag
-from django.db.models import Sum
+from django.db.models import Count, Sum
 from community.forms import AnswerForm, CommentForm, QuestionForm
 from .filters import QuestionFilter
 from .models import Answer, Comment, Question, Vote
@@ -28,7 +28,7 @@ class QuestionListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().annotate(answer_count=Count("answers"))
         self.filterset = QuestionFilter(self.request.GET, queryset=queryset)
         return self.filterset.qs.distinct()
 
