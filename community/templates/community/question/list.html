@@ -69,7 +69,11 @@
                     {% endif %}
                   </div>
                   <div class="text-end">
-                    <small class="text-muted d-block">{{ question.created_at|date:"M d, Y" }}</small>
+                    <div class="mb-1">
+                      <small class="text-muted d-block">{{ question.created_at|date:"M d, Y" }}</small>
+                      <small class="text-muted">{{ question.answer_count }} answer{{ question.answer_count|pluralize }}</small>
+                    </div>
+                    <small class="mt-2 text-muted">{{ question.score }} vote{{ question.score|pluralize }}</small>
                   </div>
                 </div>
               </div>
