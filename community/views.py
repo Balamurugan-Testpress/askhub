@@ -36,6 +36,15 @@ class QuestionListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context["all_tags"] = Tag.objects.all()
         context["filterset"] = self.filterset
+        user = self.request.user
+        question_ids = [q.id for q in context["object_list"]]
+        vote_qs = Vote.objects.filter(
+            user=user,
+            content_type=ContentType.objects.get_for_model(Question),
+            object_id__in=question_ids,
+        ).values_list("object_id", "vote_type")
+
+        context["question_vote_map"] = dict(vote_qs)
         return context
 
 
