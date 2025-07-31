@@ -73,7 +73,7 @@
                       <small class="text-muted d-block">{{ question.created_at|date:"M d, Y" }}</small>
                       <small class="text-muted">{{ question.answer_count }} answer{{ question.answer_count|pluralize }}</small>
                     </div>
-                    <div class="mt-2">{{ question.score }} vote{{ question.score|pluralize }}</div>
+                    <small class="mt-2 text-muted">{{ question.score }} vote{{ question.score|pluralize }}</small>
                   </div>
                 </div>
               </div>
