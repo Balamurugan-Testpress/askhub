@@ -12,10 +12,12 @@ from community.views import (
     CommentEditView,
     SubmitAnswerView,
     ToggleVoteView,
+    set_timezone,
 )
 
 urlpatterns = [
     path("", QuestionListView.as_view(), name="question_list"),
+        path('set-timezone/', set_timezone, name='set_timezone'),
     path(
         "question/<int:question_id>/",
         QuestionDetailView.as_view(),
