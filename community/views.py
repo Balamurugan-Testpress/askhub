@@ -1,5 +1,6 @@
 from collections import defaultdict
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http.response import HttpResponseBadRequest
@@ -22,7 +23,7 @@ from .models import Answer, Comment, Question, Vote
 from pytz import all_timezones
 
 
-
+@login_required
 def set_timezone(request):
     if request.method == "POST":
         tz = request.POST.get("timezone")
