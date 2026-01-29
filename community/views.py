@@ -1,9 +1,10 @@
 from collections import defaultdict
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http.response import HttpResponseBadRequest
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render,redirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -19,7 +20,18 @@ from django.db.models import Count, Sum
 from community.forms import AnswerForm, CommentForm, QuestionForm
 from .filters import QuestionFilter
 from .models import Answer, Comment, Question, Vote
+from pytz import all_timezones
 
+
+@login_required
+def set_timezone(request):
+    if request.method == "POST":
+        tz = request.POST.get("timezone")
+        if tz in all_timezones:
+            request.session['django_timezone'] = tz
+            request.user.userprofile.timezone = tz
+            request.user.userprofile.save()
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
 class QuestionListView(LoginRequiredMixin, ListView):
     model = Question
